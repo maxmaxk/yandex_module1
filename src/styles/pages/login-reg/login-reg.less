@@ -1,0 +1,53 @@
+.form{
+    width: 500px;
+    background-color: @bg_color;
+    box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    &__title{
+        text-align: center;
+    }
+    &__input-blocks{
+        display: flex;
+        flex-flow: column;
+        width: 100%;
+    }
+    &__input-block{
+        list-style-type: none;
+        margin-bottom: 10px;
+        display: flex;
+    }
+    &__submit{
+        cursor: pointer;
+        margin-bottom: 15px;
+        color: white;
+        background-color: darkblue;
+        border-radius: 5px;
+        border: 3px solid wheat;
+        height: 30px;
+        min-width: 100px;
+        &:hover{
+            background-color: blueviolet; 
+        }
+    }
+    &__registration{
+        text-decoration: none;
+        margin-bottom: 15px;
+        &:hover{
+            color: @hover_color;
+        }
+    }
+}
+
+.input-block{
+    &__title{
+        width: 150px;
+        display: inline-block;
+    }
+    &__input{
+        flex-grow: 1;
+        margin-right: 40px;
+    }
+}
