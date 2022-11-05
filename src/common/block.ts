@@ -1,5 +1,4 @@
 import { EventBus } from "./eventBus";
-import { v4 as makeUUID } from "uuid";
 import { Templator } from "../templator/templator";
 
 type Meta = {
@@ -23,7 +22,7 @@ export class Block {
   _meta: Meta | null = null;
   _eventBus: EventBus;
   _props: KeyObject;
-  _id = null;
+  _id: string | null = null;
   _children: KeyObject;
   _setUpdate: boolean = false;
 
@@ -34,7 +33,7 @@ export class Block {
       tagName,
       props
     };
-    this._id = makeUUID();
+    this._id = (Math.random() + "").slice(2);
     this._children = this._makePropsProxy(children);
     this._props = this._makePropsProxy({...props, __id: this._id});
     this._eventBus = new EventBus();
