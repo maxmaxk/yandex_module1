@@ -1,62 +1,40 @@
 import { pages } from "./pages/pages";
-import { Templator } from "./templator/templator";
-
-import { mainTemplate } from "./pages/main/main.tmpl";
-import { mainContextGetter } from "./pages/main/mainContext";
-
-import { loginTemplate } from "./pages/login/login.tmpl";
-import { loginContextGetter } from "./pages/login/loginContext";
-
-import { registrationTemplate } from "./pages/registration/registration.tmpl";
-import { registrationContextGetter } from "./pages/registration/registrationContext";
-
-import { chatListTemplate } from "./pages/chat-list/chatList.tmpl";
-import { chatListContextGetter } from "./pages/chat-list/chatListContext";
-
-import { profileTemplate } from "./pages/profile/profile.tmpl";
-import { profileContextGetter } from "./pages/profile/profileContext";
-
-import { unknownTemplate } from "./pages/unknown-page/unknownPage.tmpl";
-import { page404Getter } from "./pages/page404/page404";
-import { page500Getter } from "./pages/page500/page505";
-
+import { Block } from "./common/block";
+import { MainBlock } from "./pages/main/mainBlock";
+import { LoginBlock } from "./pages/login/loginBlock";
+import { RegistrationBlock } from "./pages/registration/registrationBlock";
+import { ProfileBlock } from "./pages/profile/profileBlock";
+import { ChatListBlock } from "./pages/chat-list/chatListBlock";
+import { Page404Block } from "./pages/page404/page404Block";
+import { Page500Block } from "./pages/page500/page500Block";
 
 const pageName = window.location.pathname;
-const templator = new Templator;
+let block: Block | null = null;
 switch(pageName){
-  case pages.main:
-    templator.setTemplate(mainTemplate);
-    templator.setContextGetter(mainContextGetter);
+  case pages.main.url:
+    block = new MainBlock();
     break;
-  case pages.login:
-    templator.setTemplate(loginTemplate);
-    templator.setContextGetter(loginContextGetter);
+  case pages.login.url:
+    block = new LoginBlock();
     break;
-  case pages.registration:
-    templator.setTemplate(registrationTemplate);
-    templator.setContextGetter(registrationContextGetter);
+  case pages.registration.url:
+    block = new RegistrationBlock();
     break;
-  case pages.chartList:
-    templator.setTemplate(chatListTemplate);
-    templator.setContextGetter(chatListContextGetter);
+  case pages.chartList.url:
+    block = new ChatListBlock()
     break;
-  case pages.profile:
-    templator.setTemplate(profileTemplate);
-    templator.setContextGetter(profileContextGetter);
+  case pages.profile.url:
+    block = new ProfileBlock();
     break;
-  case pages.page404:
-    templator.setTemplate(unknownTemplate);
-    templator.setContextGetter(page404Getter);
+  case pages.page404.url:
+    block = new Page404Block();
     break;
-  case pages.page500:
-    templator.setTemplate(unknownTemplate);
-    templator.setContextGetter(page500Getter);
+  case pages.page500.url:
+    block = new Page500Block();
     break;
   default:
-    templator.setTemplate(unknownTemplate);
-    templator.setContextGetter(page404Getter);
+    block = new Page404Block();
 }
 
-(<any>window).state.templator = templator;
 const root: Element = document.getElementsByClassName("root")[0];
-if(root) root.innerHTML = templator.compile();
+if(root && block) root.appendChild(block.getContent() as Node);

@@ -2,14 +2,13 @@ import { compiler } from "./compiler";
 export class Templator{
     template: string;
     contextGetter: Function;
+    context: object;
     compiler: Function;
-    setTemplate(template: string){
+    constructor(template: string, context: object){
         this.template = template;
+        this.context = context;
     }
-    setContextGetter(contextGetter: Function){
-        this.contextGetter = contextGetter;
-    }   
     compile(): string {
-        return compiler(this.template, this.contextGetter());
+        return compiler(this.template, this.context);
     }
 }
