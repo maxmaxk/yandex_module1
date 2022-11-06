@@ -1,4 +1,4 @@
-export const loginTemplate: string = `
+export const loginTemplate = `
     <form class="form" method="post"">
         <h1 class="form__title">#loginTitle#</h1>
         #labledInputs#

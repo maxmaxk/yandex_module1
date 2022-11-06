@@ -1,4 +1,4 @@
-export const profileTemplate: string = `
+export const profileTemplate = `
     <div class="profile__container">
         <div class="profile__image-container">
             <img class="profile__image" src="#profileImage#"></img>

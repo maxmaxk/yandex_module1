@@ -1,4 +1,4 @@
-export const labledStateInputsTemplate: string = `
+export const labledStateInputsTemplate = `
 <*li class="profile-detail#item.isHidden#">
     <span class="profile-detail__title"><b>#item.title#:</b>&nbsp</span>
     <input 

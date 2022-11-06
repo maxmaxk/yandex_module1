@@ -18,7 +18,21 @@
               "ts": "never",
               "tsx": "never"
             }
-         ]
+         ],
+         "import/prefer-default-export": "off",
+         "no-underscore-dangle": 0,
+         "keyword-spacing": 0,
+         "@typescript-eslint/no-this-alias": 0,
+         "no-param-reassign": 0,
+         "@typescript-eslint/no-explicit-any": 0,
+         "no-use-before-define": 0,
+         "@typescript-eslint/ban-types": 0,
+         "no-console": 0,
+         "no-constant-condition": 0,
+         "no-case-declarations": 0,
+         "prefer-regex-literals": 0,
+         "no-plusplus": 0,
+         "@typescript-eslint/ban-ts-comment": 0
     },
     "settings": {
         "import/resolver": {

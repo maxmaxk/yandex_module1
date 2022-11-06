@@ -15,38 +15,45 @@ export class Block {
     INIT: "init",
     FLOW_CDM: "flow:component-did-mount",
     FLOW_CDU: "flow:component-did-update",
-    FLOW_RENDER: "flow:render"
+    FLOW_RENDER: "flow:render",
   };
 
   _element: HTMLElement | null = null;
+
   _meta: Meta | null = null;
+
   _eventBus: EventBus;
+
   _props: KeyObject;
+
   _id: string | null = null;
+
   _children: KeyObject;
-  _setUpdate: boolean = false;
+
+  _setUpdate = false;
 
   constructor(tagName = "div", propsAndChildren = {}) {
-    const { children, props } = this._getChildren(propsAndChildren);
+    const { children, props } = Block._getChildren(propsAndChildren);
     this._children = children;
     this._meta = {
       tagName,
-      props
+      props,
     };
-    this._id = (Math.random() + "").slice(2);
+    this._id = Math.random().toString().slice(2);
     this._children = this._makePropsProxy(children);
-    this._props = this._makePropsProxy({...props, __id: this._id});
+    this._props = this._makePropsProxy({ ...props, __id: this._id });
     this._eventBus = new EventBus();
     this._registerEvents(this._eventBus);
     this._eventBus.emit(Block.EVENTS.INIT);
   }
 
-  _getChildren(propsAndChildren) {
-    const children = {};
-    const props = {};
+  // @ts-ignore
+  static _getChildren(propsAndChildren: any) {
+    const children: KeyObject = {};
+    const props: KeyObject = {};
 
     Object.entries(propsAndChildren).forEach(([key, value]) => {
-      if (value instanceof Block) {
+      if(value instanceof Block) {
         children[key] = value;
       } else {
         props[key] = value;
@@ -55,7 +62,7 @@ export class Block {
     return { children, props };
   }
 
-  _registerEvents(eventBus) {
+  _registerEvents(eventBus: EventBus) {
     eventBus.on(Block.EVENTS.INIT, this.init.bind(this));
     eventBus.on(Block.EVENTS.FLOW_CDM, this._componentDidMount.bind(this));
     eventBus.on(Block.EVENTS.FLOW_CDU, this._componentDidUpdate.bind(this));
@@ -65,7 +72,7 @@ export class Block {
   _createResources() {
     if(!this._meta) return;
     const { tagName } = this._meta;
-    this._element = this._createDocumentElement(tagName);
+    this._element = Block._createDocumentElement(tagName);
   }
 
   init() {
@@ -75,18 +82,20 @@ export class Block {
 
   _componentDidMount() {
     this.componentDidMount();
-    Object.values(this._children).forEach(child => {
+    Object.values(this._children).forEach((child) => {
       child.dispatchComponentDidMount();
     });
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    return undefined;
+  }
 
-	dispatchComponentDidMount() {
-		this._eventBus.emit(Block.EVENTS.FLOW_CDM);
-	}
+  dispatchComponentDidMount() {
+    this._eventBus.emit(Block.EVENTS.FLOW_CDM);
+  }
 
-  _componentDidUpdate(oldProps, newProps) {
+  _componentDidUpdate(oldProps: object, newProps: object) {
     const response = this.componentDidUpdate(oldProps, newProps);
     if (!response) {
       return;
@@ -94,23 +103,23 @@ export class Block {
     this._render();
   }
 
-  componentDidUpdate(oldProps, newProps) {
+  componentDidUpdate(oldProps: object, newProps: object) {
     return JSON.stringify(oldProps) !== JSON.stringify(newProps);
   }
 
-  setProps = nextProps => {
+  setProps = (nextProps: object) => {
     if (!nextProps) return;
     this._setUpdate = false;
-    const oldValue = {...this._props};
-    const { children, props } = this._getChildren(nextProps);
-    if(Object.values(children).length){
+    const oldValue = { ...this._props };
+    const { children, props } = Block._getChildren(nextProps);
+    if(Object.values(children).length) {
       Object.assign(this._children, children);
     }
-    if(Object.values(props).length){
+    if(Object.values(props).length) {
       Object.assign(this._props, props);
     }
-    if(this._setUpdate){
-      this._eventBus.emit(Block.EVENTS.FLOW_CDU, oldValue, {...this._props});
+    if(this._setUpdate) {
+      this._eventBus.emit(Block.EVENTS.FLOW_CDU, oldValue, { ...this._props });
       this._setUpdate = false;
     }
   };
@@ -124,16 +133,16 @@ export class Block {
     const block = this.render();
     this._removeEvents();
     this._element.innerHTML = "";
-    if(block instanceof Node){
+    if(block instanceof Node) {
       this._element.appendChild(block);
     }else{
-      this._element.insertAdjacentHTML('beforeend', block);
+      this._element.insertAdjacentHTML("beforeend", block);
     }
     this._addEvents();
     this._addAttributes();
   }
 
-  render(): any{
+  render(): any {
     return "";
   }
 
@@ -142,27 +151,28 @@ export class Block {
   }
 
   _addEvents() {
-    const {events = {}} = this._props as KeyObject;
-    Object.keys(events).forEach(eventName => {
+    const { events = {} } = this._props as KeyObject;
+    Object.keys(events).forEach((eventName) => {
       this._element?.addEventListener(eventName, events[eventName]);
     });
   }
 
   _removeEvents() {
-    const {events = {}} = this._props as KeyObject;
-    Object.keys(events).forEach(eventName => {
+    const { events = {} } = this._props as KeyObject;
+    Object.keys(events).forEach((eventName) => {
       this._element?.removeEventListener(eventName, events[eventName]);
     });
   }
 
   _addAttributes() {
-    const {attr = {}} = this._props as KeyObject;
+    const { attr = {} } = this._props as KeyObject;
     Object.entries(attr).forEach(([key, value]) => {
       this._element?.setAttribute(key, value as string);
-    })
+    });
   }
 
-  _makePropsProxy(props): ProxyConstructor{
+  // @ts-ignore
+  _makePropsProxy(props): ProxyConstructor {
     const self = this;
     return new Proxy(props, {
       get(target, prop) {
@@ -170,7 +180,7 @@ export class Block {
         return typeof value === "function" ? value.bind(target) : value;
       },
       set(target, prop, value) {
-        if(target[prop] !== value){
+        if(target[prop] !== value) {
           target[prop] = value;
           self._setUpdate = true;
         }
@@ -178,36 +188,34 @@ export class Block {
       },
       deleteProperty() {
         throw new Error("Access denied");
-      }
+      },
     });
   }
 
-  _createDocumentElement(tagName) {
+  // @ts-ignore
+  static _createDocumentElement(tagName) {
     return document.createElement(tagName);
   }
 
   compile(template: string, props: KeyObject) {
-    
     const propsAndStubs = { ...props };
 
     Object.entries(this._children).forEach(([key, child]) => {
-        propsAndStubs.replaces.push({[key]: `<div data-id="${child._id}"></div>`});
+      propsAndStubs.replaces.push({ [key]: `<div data-id="${child._id}"></div>` });
     });
 
-    const fragment = this._createDocumentElement('template');
-    const templater = new Templator(template, propsAndStubs)
+    const fragment = Block._createDocumentElement("template");
+    const templater = new Templator(template, propsAndStubs);
     fragment.innerHTML = templater.compile();
-    Object.values(this._children).forEach(child => {
-        const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
-        stub.replaceWith(child.getContent());
+    Object.values(this._children).forEach((child) => {
+      const stub = fragment.content.querySelector(`[data-id="${child._id}"]`);
+      stub.replaceWith(child.getContent());
     });
-
     return fragment.content;
   }
 
-  restoreFocus(element: HTMLElement) {
+  static restoreFocus(element: HTMLElement) {
     const findElement: HTMLElement | null = document.getElementById(element?.id);
     if(findElement) findElement.focus();
   }
-
 }

@@ -1,4 +1,4 @@
-export const chatFlowTemplate: string = `
+export const chatFlowTemplate = `
     <*li class="chat-body__message_#message.type#">
         <div class="chat-body__message-content">#message.content#</div>
         <div class="chat-body__message-info">

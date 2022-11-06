@@ -3,5 +3,8 @@
   "transformers": {
     "*.{ts,tsx}": ["@parcel/transformer-typescript-tsc"]
   },
+  "validators": {
+    "*.{ts,tsx}": ["@parcel/validator-typescript"]
+  },
   "reporters":  ["...", "parcel-reporter-static-files-copy"]
 } 

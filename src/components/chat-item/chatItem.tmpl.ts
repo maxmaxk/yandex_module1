@@ -1,4 +1,4 @@
-export const chatItemTemplate: string = `
+export const chatItemTemplate = `
 <img class="chat-item__image" src="#chatitem.image#"></img>
 <div class="chat-item__title">
     <span><b>#chatitem.name#</b></span>

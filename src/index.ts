@@ -10,7 +10,7 @@ import { Page500Block } from "./pages/page500/page500Block";
 
 const pageName = window.location.pathname;
 let block: Block | null = null;
-switch(pageName){
+switch(pageName) {
   case pages.main.url:
     block = new MainBlock();
     break;
@@ -21,7 +21,7 @@ switch(pageName){
     block = new RegistrationBlock();
     break;
   case pages.chartList.url:
-    block = new ChatListBlock()
+    block = new ChatListBlock();
     break;
   case pages.profile.url:
     block = new ProfileBlock();
