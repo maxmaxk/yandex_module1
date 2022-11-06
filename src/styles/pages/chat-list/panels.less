@@ -1,31 +1,40 @@
-.panelcontainer{
-    display: flex;
-    height: 100%;
+.panelcontainer {
+  display: flex;
+  height: 100%;
 }
-.left-panel-container,.right-panel-container{
-    height: 100%;
-    width: 200px;
+
+.left-panel-container,
+.right-panel-container {
+  height: 100%;
+  width: 200px;
 }
-.left-panel-container{
-    width: 300px;
+
+.left-panel-container {
+  width: 300px;
 }
-.right-panel-container{
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    &.inactive-message{
-        align-items: center;
-    }
-    &.inactive-message>.inactive-panel{
-        display: block;
-    }
-    &.inactive-message>.active-panel{
-        display: none;
-    }
-    &.active-message>.inactive-panel{
-        display: none;
-    }
-    &.active-message>.active-panel{
-        display: block;
-    }
+
+.right-panel-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+
+  &.inactive-message {
+    align-items: center;
+  }
+
+  &.inactive-message > .inactive-panel {
+    display: block;
+  }
+
+  &.inactive-message > .active-panel {
+    display: none;
+  }
+
+  &.active-message > .inactive-panel {
+    display: none;
+  }
+
+  &.active-message > .active-panel {
+    display: block;
+  }
 }

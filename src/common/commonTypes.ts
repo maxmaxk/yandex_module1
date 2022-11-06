@@ -3,6 +3,6 @@ export type KeyObject = {
 };
 
 export type InputParams = {
-    id: string,
+    id?: string,
     value: string
 }
