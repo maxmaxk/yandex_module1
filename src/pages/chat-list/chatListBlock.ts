@@ -5,9 +5,9 @@ import { pages } from "../pages";
 import { testChatList, testMessageList, updateTestMessageList } from "./chatListContext";
 import { ChatItems } from "../../components/chat-items/chatItems";
 import { ChatFlow } from "../../components/chat-flow/chatFlow";
-
 import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
+import { InputParams } from "../../common/commonTypes";
 
 export class ChatListBlock extends Block {
   constructor() {
@@ -48,13 +48,13 @@ export class ChatListBlock extends Block {
         chatHeaderTitle: getActiveChat()?.name,
       });
     });
-    bus.on("input:set-invalid", ({ value }) => {
+    bus.on("input:set-invalid", ({ value }: InputParams) => {
       this.setProps({ isInvalidClass: "chat-message__input_invalid", value });
     });
-    bus.on("input:set-valid", ({ value }) => {
+    bus.on("input:set-valid", ({ value }: InputParams) => {
       this.setProps({ isInvalidClass: "", value });
     });
-    bus.on("chat:message-send", (message) => {
+    bus.on("chat:message-send", (message: string) => {
       state.newMessageText = message;
       this._children.chatFlow.setProps({ message: updateTestMessageList() });
     });

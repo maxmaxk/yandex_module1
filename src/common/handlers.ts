@@ -19,6 +19,7 @@ export class Handlers {
     }
   }
 
+  // @ts-ignore
   static onItemFocusOut(e) {
     if(e.relatedTarget?.tagName === "BUTTON") return;
     if((e.target.tagName === "INPUT") || (e.target.tagName === "TEXTAREA")) {
@@ -28,6 +29,7 @@ export class Handlers {
     }
   }
 
+  // @ts-ignore
   static onProfileManagment(e) {
     if((e.target.className === "profile__change-data") && !state.dataChangeMode) {
       bus.emit("profile:change-mode");
@@ -42,6 +44,7 @@ export class Handlers {
     }
   }
 
+  // @ts-ignore
   static onChatClick(e) {
     switch (e.target.className) {
       case "top-menu__add-chat":
@@ -70,14 +73,17 @@ export class Handlers {
     }
   }
 
+  // @ts-ignore
   static onInput(e) {
     if(e.target.className === "search-panel__input") {
       console.log("chat filter change event");
     }
   }
 
+  // @ts-ignore
   static onFormSubmit(e) {
     const data = new FormData(e.target);
+    // @ts-ignore
     const iter = data.keys();
     let isAllValid = true;
     const formValidateData: FormValidateData[] = [];

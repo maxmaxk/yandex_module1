@@ -1,8 +1,11 @@
+import { KeyObject } from "./commonTypes";
+
 export class Validator {
   targetName: string;
 
   value: any;
 
+  // @ts-ignore
   constructor(target, value?: any) {
     if(value === undefined) {
       if(!target.id) throw new Error("Validation element has no id");
@@ -15,7 +18,7 @@ export class Validator {
   }
 
   isValid(): boolean {
-    const validatorHandlers = {
+    const validatorHandlers: KeyObject = {
       login: Validator.isLoginValid,
       display_name: Validator.isLoginValid,
       password: Validator.isPasswordValid,

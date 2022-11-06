@@ -4,6 +4,7 @@ import { profileTemplate } from "./profile.tmpl";
 import { LabledStateInputs } from "../../components/labled-state-inputs/labledStateInputs";
 import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
+import { KeyObject, InputParams } from "../../common/commonTypes";
 
 export class ProfileBlock extends Block {
   constructor() {
@@ -107,16 +108,16 @@ export class ProfileBlock extends Block {
     });
 
     const bus = new EventBus();
-    bus.on("input:set-invalid", ({ id, value }, relatedTarget) => {
-      const newItemsProps = this._children.labledStateInputs._props.items.map((item) =>
+    bus.on("input:set-invalid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (item.id === id ? { ...item, value, isInvalidClass: " profile-detail__value_invalid" } : item));
       this._children.labledStateInputs.setProps({ items: newItemsProps });
       Block.restoreFocus(relatedTarget);
     });
 
-    bus.on("input:set-valid", ({ id, value }, relatedTarget) => {
-      const newItemsProps = this._children.labledStateInputs._props.items.map((item) =>
+    bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (item.id === id ? { ...item, value, isInvalidClass: "" } : item));
       this._children.labledStateInputs.setProps({ items: newItemsProps });
@@ -126,7 +127,7 @@ export class ProfileBlock extends Block {
     bus.on("profile:change-mode", () => {
       state.dataChangeMode = !state.dataChangeMode;
       this.setProps({ profileChangeDataTitle: getChangeDataTitle() });
-      const newItemsProps = this._children.labledStateInputs._props.items.map((item) =>
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (["oldPassword", "newPassword", "avatar"].includes(item.id) ? { ...item, isHidden: getIsHidden() } : item));
       this._children.labledStateInputs.setProps({

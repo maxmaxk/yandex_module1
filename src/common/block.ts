@@ -1,13 +1,10 @@
 import { EventBus } from "./eventBus";
 import { Templator } from "../templator/templator";
+import { KeyObject } from "./commonTypes";
 
 type Meta = {
   tagName: string,
   props: object
-};
-
-type KeyObject = {
-  [key: string]: any
 };
 
 export class Block {

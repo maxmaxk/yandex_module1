@@ -1,6 +1,4 @@
-type KeyObject = {
-  [key: string]: any
-};
+import { KeyObject } from "./commonTypes";
 
 export class EventBus {
   listeners: KeyObject;

@@ -3,6 +3,7 @@ import { registrationTemplate } from "./registration.tmpl";
 import { LabledInputs } from "../../components/labled-inputs/labledInputs";
 import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
+import { KeyObject, InputParams } from "../../common/commonTypes";
 
 export class RegistrationBlock extends Block {
   constructor() {
@@ -65,15 +66,15 @@ export class RegistrationBlock extends Block {
       },
     });
     const bus = new EventBus();
-    bus.on("input:set-invalid", ({ id, value }, relatedTarget) => {
-      const newItemsProps = this._children.labledInputs._props.items.map((item) =>
+    bus.on("input:set-invalid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
+      const newItemsProps = this._children.labledInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (item.id === id ? { ...item, value, isInvalidClass: "input-block__input_invalid" } : item));
       this._children.labledInputs.setProps({ items: newItemsProps });
       Block.restoreFocus(relatedTarget);
     });
-    bus.on("input:set-valid", ({ id, value }, relatedTarget) => {
-      const newItemsProps = this._children.labledInputs._props.items.map((item) =>
+    bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
+      const newItemsProps = this._children.labledInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (item.id === id ? { ...item, value, isInvalidClass: "" } : item));
       this._children.labledInputs.setProps({ items: newItemsProps });
