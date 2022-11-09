@@ -7,7 +7,7 @@ type Meta = {
   props: object
 };
 
-export class Block {
+export class Block<Props extends KeyObject> {
   static EVENTS = {
     INIT: "init",
     FLOW_CDM: "flow:component-did-mount",
@@ -21,7 +21,7 @@ export class Block {
 
   _eventBus: EventBus;
 
-  _props: KeyObject;
+  _props: Props;
 
   _id: string | null = null;
 
@@ -29,7 +29,7 @@ export class Block {
 
   _setUpdate = false;
 
-  constructor(tagName = "div", propsAndChildren = {}) {
+  constructor(tagName = "div", propsAndChildren: Props | {} = {}) {
     const { children, props } = Block._getChildren(propsAndChildren);
     this._children = children;
     this._meta = {
@@ -169,7 +169,7 @@ export class Block {
   }
 
   // @ts-ignore
-  _makePropsProxy(props): ProxyConstructor {
+  _makePropsProxy(props): Props {
     const self = this;
     return new Proxy(props, {
       get(target, prop) {

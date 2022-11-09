@@ -4,9 +4,21 @@ import { profileTemplate } from "./profile.tmpl";
 import { LabledStateInputs } from "../../components/labled-state-inputs/labledStateInputs";
 import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
-import { KeyObject, InputParams } from "../../common/commonTypes";
+import { KeyObject } from "../../common/commonTypes";
 
-export class ProfileBlock extends Block {
+type ProfileBlockType = {
+  getChangeDataTitle: string,
+  profileImage: string,
+  profileChangeDataTitle: string,
+  profileChangePasswordTitle: string,
+  labledStateInputs: LabledStateInputs,
+  profileTitle: string,
+  dataChangeMode: boolean,
+  isReadOnly: boolean,
+  profileLogoutTitle: string,
+}
+
+export class ProfileBlock extends Block<ProfileBlockType> {
   constructor() {
     const getChangeDataTitle = (): string => (state.dataChangeMode ? "Сохранить данные" : "Изменить данные");
     const getChangeMode = (): string => (state.dataChangeMode ? "" : " no-change-mode");
@@ -31,6 +43,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: "",
+            errorMessage: "",
           },
           {
             title: "Фамилия",
@@ -39,6 +52,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: "",
+            errorMessage: "",
           },
           {
             title: "Логин",
@@ -47,6 +61,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: "",
+            errorMessage: "",
           },
           {
             title: "Имя в чате",
@@ -55,6 +70,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: "",
+            errorMessage: "",
           },
           {
             title: "Электронная почта",
@@ -63,6 +79,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: "",
+            errorMessage: "",
           },
           {
             title: "Телефон",
@@ -71,6 +88,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: "",
+            errorMessage: "",
           },
           {
             title: "Старый пароль",
@@ -79,6 +97,7 @@ export class ProfileBlock extends Block {
             type: "password",
             isInvalidClass: "",
             isHidden: getIsHidden(),
+            errorMessage: "",
           },
           {
             title: "Новый пароль",
@@ -87,6 +106,7 @@ export class ProfileBlock extends Block {
             type: "password",
             isInvalidClass: "",
             isHidden: getIsHidden(),
+            errorMessage: "",
           },
           {
             title: "Аватар",
@@ -95,6 +115,7 @@ export class ProfileBlock extends Block {
             type: "text",
             isInvalidClass: "",
             isHidden: getIsHidden(),
+            errorMessage: "",
           },
         ],
         events: {
@@ -108,22 +129,7 @@ export class ProfileBlock extends Block {
     });
 
     const bus = new EventBus();
-    bus.on("input:set-invalid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
-      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        (item.id === id ? { ...item, value, isInvalidClass: " profile-detail__value_invalid" } : item));
-      this._children.labledStateInputs.setProps({ items: newItemsProps });
-      Block.restoreFocus(relatedTarget);
-    });
-
-    bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
-      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        (item.id === id ? { ...item, value, isInvalidClass: "" } : item));
-      this._children.labledStateInputs.setProps({ items: newItemsProps });
-      Block.restoreFocus(relatedTarget);
-    });
-
+    Handlers.busBind(this);
     bus.on("profile:change-mode", () => {
       state.dataChangeMode = !state.dataChangeMode;
       this.setProps({ profileChangeDataTitle: getChangeDataTitle() });

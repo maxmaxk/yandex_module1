@@ -1,18 +1,18 @@
 .chat-body {
   &__container {
     overflow-y: auto;
-    height: calc(100% - 96px);
+    height: calc(100% - 116px);
     margin-left: 20px;
     margin-right: 20px;
+  }
 
-    ul {
-      list-style-type: none;
-      padding: 0;
-    }
+  &__message-list {
+    list-style-type: none;
+    padding: 0;
   }
 
   &__message-info {
-    color: gray;
+    color: @message_info_color;
     font-size: 14px;
     display: flex;
     justify-content: end;

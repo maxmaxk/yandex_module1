@@ -1,7 +1,13 @@
 import { Block } from "../../common/block";
 import { labledStateInputsTemplate } from "./labledStateInputs.tmpl";
 
-export class LabledStateInputs extends Block {
+type LabledStateInputsType = {
+  dataChangeMode: boolean,
+  isReadOnly: boolean,
+  items: object,
+}
+
+export class LabledStateInputs extends Block<LabledStateInputsType> {
   render() {
     return this.compile(labledStateInputsTemplate, {
       replaces: [

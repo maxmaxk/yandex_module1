@@ -1,11 +1,16 @@
 import { state } from "./state";
 import { EventBus } from "./eventBus";
 import { Validator } from "./validator";
+import { Block } from "./block";
+import { KeyObject, InputParams } from "./commonTypes";
+import { LoginBlock } from "../pages/login/loginBlock";
+import { ProfileBlock } from "../pages/profile/profileBlock";
+import { RegistrationBlock } from "../pages/registration/registrationBlock";
 
 type FormValidateData = {
     keyName: string,
     value: string,
-    isValid: boolean,
+    errorMessage: string,
 };
 
 const bus = new EventBus();
@@ -24,8 +29,9 @@ export class Handlers {
     if(e.relatedTarget?.tagName === "BUTTON") return;
     if((e.target.tagName === "INPUT") || (e.target.tagName === "TEXTAREA")) {
       const validator = new Validator(e.target);
-      const event = validator.isValid() ? "input:set-valid" : "input:set-invalid";
-      bus.emit(event, e.target, e.relatedTarget);
+      const errorMessage = validator.getErrorMessage();
+      const event = errorMessage === "" ? "input:set-valid" : "input:set-invalid";
+      bus.emit(event, e.target, e.relatedTarget, errorMessage);
     }
   }
 
@@ -91,11 +97,12 @@ export class Handlers {
       const { value, done } = iter.next();
       if(done) break;
       const validator = new Validator(value, data.get(value));
-      const isValid: boolean = validator.isValid();
+      const errorMessage = validator.getErrorMessage();
+      const isValid: boolean = errorMessage === "";
       formValidateData.push({
         keyName: value,
         value: data.get(value) as string,
-        isValid,
+        errorMessage,
       });
       isAllValid &&= isValid;
     }
@@ -108,10 +115,53 @@ export class Handlers {
       if(e.target.id === "chat-message-form") bus.emit("chat:message-send", formValidateData[0].value);
     }else{
       formValidateData.forEach((item) => {
-        const event = item.isValid ? "input:set-valid" : "input:set-invalid";
-        bus.emit(event, document.getElementById(item.keyName), e.target);
+        const event = item.errorMessage === "" ? "input:set-valid" : "input:set-invalid";
+        bus.emit(event, document.getElementById(item.keyName), e.target, item.errorMessage);
       });
     }
     e.preventDefault();
+  }
+
+  static busBind<T extends KeyObject>(block: Block<T>) {
+    bus.on("input:set-invalid", ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
+      if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
+        const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
+          // eslint-disable-next-line implicit-arrow-linebreak
+          (item.id === id ? {
+            ...item, value, errorMessage, isInvalidClass: "input-block__input_invalid",
+          } : item));
+        block._children.labledInputs.setProps({ items: newItemsProps });
+      }
+      if(block instanceof ProfileBlock) {
+        const newItemsProps = block._children.labledStateInputs._props.items
+          .map((item: KeyObject) =>
+          // eslint-disable-next-line implicit-arrow-linebreak
+            (item.id === id ? {
+              ...item, value, errorMessage, isInvalidClass: " profile-detail__value_invalid",
+            } : item));
+        block._children.labledStateInputs.setProps({ items: newItemsProps });
+      }
+      Block.restoreFocus(relatedTarget);
+    });
+    bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
+      if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
+        const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
+          // eslint-disable-next-line implicit-arrow-linebreak
+          (item.id === id ? {
+            ...item, value, errorMessage, isInvalidClass: "",
+          } : item));
+        block._children.labledInputs.setProps({ items: newItemsProps });
+      }
+      if(block instanceof ProfileBlock) {
+        const newItemsProps = block._children.labledStateInputs._props.items
+          .map((item: KeyObject) =>
+          // eslint-disable-next-line implicit-arrow-linebreak
+            (item.id === id ? {
+              ...item, value, errorMessage, isInvalidClass: "",
+            } : item));
+        block._children.labledStateInputs.setProps({ items: newItemsProps });
+      }
+      Block.restoreFocus(relatedTarget);
+    });
   }
 }

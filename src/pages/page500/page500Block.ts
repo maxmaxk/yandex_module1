@@ -2,7 +2,15 @@ import { Block } from "../../common/block";
 import { unknownTemplate } from "../unknown-page/unknownPage.tmpl";
 import { pages } from "../pages";
 
-export class Page500Block extends Block {
+type Page500BlockType = {
+  attr: string,
+  unknownPageTitle: string,
+  unknownPageText: string,
+  backLinkText: string,
+  backLink: string,
+}
+
+export class Page500Block extends Block<Page500BlockType> {
   constructor() {
     super("div", {
       attr: { class: "flexcontainer" },

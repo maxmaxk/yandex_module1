@@ -2,10 +2,16 @@ import { Block } from "../../common/block";
 import { registrationTemplate } from "./registration.tmpl";
 import { LabledInputs } from "../../components/labled-inputs/labledInputs";
 import { Handlers } from "../../common/handlers";
-import { EventBus } from "../../common/eventBus";
-import { KeyObject, InputParams } from "../../common/commonTypes";
 
-export class RegistrationBlock extends Block {
+type RegistrationBlockType = {
+  attr: object,
+  registrationTitle: string,
+  submitTitle: string,
+  labledInputs: LabledInputs,
+  events: Object
+}
+
+export class RegistrationBlock extends Block<RegistrationBlockType> {
   constructor() {
     super("div", {
       attr: { class: "flexcontainer" },
@@ -20,6 +26,7 @@ export class RegistrationBlock extends Block {
             type: "text",
             isInvalidClass: "",
             value: "",
+            errorMessage: "",
           },
           {
             title: "Фамилия",
@@ -27,6 +34,7 @@ export class RegistrationBlock extends Block {
             type: "text",
             isInvalidClass: "",
             value: "",
+            errorMessage: "",
           },
           {
             title: "Логин",
@@ -34,6 +42,7 @@ export class RegistrationBlock extends Block {
             type: "text",
             isInvalidClass: "",
             value: "",
+            errorMessage: "",
           },
           {
             title: "Электронная почта",
@@ -41,6 +50,7 @@ export class RegistrationBlock extends Block {
             type: "text",
             isInvalidClass: "",
             value: "",
+            errorMessage: "",
           },
           {
             title: "Пароль",
@@ -48,6 +58,7 @@ export class RegistrationBlock extends Block {
             type: "password",
             isInvalidClass: "",
             value: "",
+            errorMessage: "",
           },
           {
             title: "Телефон",
@@ -55,6 +66,7 @@ export class RegistrationBlock extends Block {
             type: "text",
             isInvalidClass: "",
             value: "",
+            errorMessage: "",
           },
         ],
         events: {
@@ -65,21 +77,7 @@ export class RegistrationBlock extends Block {
         submit: Handlers.onFormSubmit,
       },
     });
-    const bus = new EventBus();
-    bus.on("input:set-invalid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
-      const newItemsProps = this._children.labledInputs._props.items.map((item: KeyObject) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        (item.id === id ? { ...item, value, isInvalidClass: "input-block__input_invalid" } : item));
-      this._children.labledInputs.setProps({ items: newItemsProps });
-      Block.restoreFocus(relatedTarget);
-    });
-    bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement) => {
-      const newItemsProps = this._children.labledInputs._props.items.map((item: KeyObject) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        (item.id === id ? { ...item, value, isInvalidClass: "" } : item));
-      this._children.labledInputs.setProps({ items: newItemsProps });
-      Block.restoreFocus(relatedTarget);
-    });
+    Handlers.busBind(this);
   }
 
   render() {

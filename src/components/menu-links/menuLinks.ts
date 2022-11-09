@@ -1,7 +1,11 @@
 import { Block } from "../../common/block";
 import { menuLinksTemplate } from "./menuLinks.tmpl";
 
-export class MenuLinks extends Block {
+type MenuLinksType = {
+  items: object,
+}
+
+export class MenuLinks extends Block<MenuLinksType> {
   render() {
     return this.compile(menuLinksTemplate, {
       loops: [

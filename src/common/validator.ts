@@ -17,54 +17,56 @@ export class Validator {
     }
   }
 
-  isValid(): boolean {
+  getErrorMessage(): string {
     const validatorHandlers: KeyObject = {
-      login: Validator.isLoginValid,
-      display_name: Validator.isLoginValid,
-      password: Validator.isPasswordValid,
-      oldPassword: Validator.isPasswordValid,
-      newPassword: Validator.isPasswordValid,
-      first_name: Validator.isNameValid,
-      second_name: Validator.isNameValid,
-      email: Validator.isEmailValid,
-      phone: Validator.isPhoneValid,
-      avatar: Validator.isAvatarValid,
-      message: Validator.isMessageValid,
+      login: Validator.getLoginErrorMessage,
+      display_name: Validator.getLoginErrorMessage,
+      password: Validator.getPasswordErrorMessage,
+      oldPassword: Validator.getPasswordErrorMessage,
+      newPassword: Validator.getPasswordErrorMessage,
+      first_name: Validator.getNameErrorMessage,
+      second_name: Validator.getNameErrorMessage,
+      email: Validator.getEmailErrorMessage,
+      phone: Validator.getPhoneErrorMessage,
+      avatar: Validator.getAvatarErrorMessage,
+      message: Validator.getMessageErrorMessage,
     };
     return validatorHandlers[this.targetName]
-      ? validatorHandlers[this.targetName](this.value) : false;
+      ? validatorHandlers[this.targetName](this.value) : "";
   }
 
-  static isLoginValid(login: string): boolean {
+  static getLoginErrorMessage(login: string): string {
     const reg = new RegExp(/(?=(?!^\d+$)^.+$)(?=^([0-9A-Za-z-_]){3,20}$)/);
-    return reg.test(login);
+    return reg.test(login) ? "" : `Логин должен быть от 3 до 20 символов, латиница, 
+      может содержать цифры, но не состоять из них, без пробелов, без спецсимволов (допустимы дефис и нижнее подчёркивание)`;
   }
 
-  static isPasswordValid(password: string): boolean {
+  static getPasswordErrorMessage(password: string): string {
     const reg = new RegExp(/(?=^\S*?[A-Z]\S*?$)(?=^\S*?[0-9]\S*?$)(?=^.{8,40}$)/);
-    return reg.test(password);
+    return reg.test(password) ? "" : "Пароль должен быть от 8 до 40 символов, обязательно хотя бы одна заглавная буква и цифра.";
   }
 
-  static isNameValid(name: string): boolean {
+  static getNameErrorMessage(name: string): string {
     const reg = new RegExp(/^[A-ZА-Я]+[A-ZА-Яa-zа-я-]*?$/);
-    return reg.test(name);
+    return reg.test(name) ? "" : `Имя/фамилия должны быть латиницей или кириллицей, первая буква должна быть заглавной, 
+      без пробелов и без цифр, нет спецсимволов (допустим только дефис)`;
   }
 
-  static isEmailValid(email: string): boolean {
+  static getEmailErrorMessage(email: string): string {
     const reg = new RegExp(/^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/);
-    return reg.test(email);
+    return reg.test(email) ? "" : "Введите корректный адрес электронной почты";
   }
 
-  static isPhoneValid(phone: string): boolean {
+  static getPhoneErrorMessage(phone: string): string {
     const reg = new RegExp(/^\+?\d{10,15}$/);
-    return reg.test(phone);
+    return reg.test(phone) ? "" : "Телефон должен содержать от 10 до 15 символов, состоять из цифр, может начинается с плюса";
   }
 
-  static isAvatarValid(avatar: string): boolean {
-    return avatar !== "";
+  static getAvatarErrorMessage(avatar: string): string {
+    return (avatar !== "") ? "" : "Ссылка на аватар не может быть пустой строкой";
   }
 
-  static isMessageValid(message: string): boolean {
-    return message !== "";
+  static getMessageErrorMessage(message: string): string {
+    return (message !== "") ? "" : "Сообщение не может быть пустым";
   }
 }

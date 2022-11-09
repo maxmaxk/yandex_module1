@@ -9,7 +9,24 @@ import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
 import { InputParams } from "../../common/commonTypes";
 
-export class ChatListBlock extends Block {
+type ChatListBlockType = {
+  attr: object,
+  profileUrl: string,
+  addChatText: string,
+  removeChatText: string,
+  isActiveChat: boolean,
+  chatHeaderImage: string,
+  chatHeaderTitle: string,
+  message_name: string,
+  isInvalidClass: string,
+  value: string,
+  errorMessage: string,
+  chatItems: ChatItems,
+  chatFlow: ChatFlow,
+  events: object,
+}
+
+export class ChatListBlock extends Block<ChatListBlockType> {
   constructor() {
     const getActiveChat = () => testChatList()[state.activeChatId];
     const getIsActiveChat = (): string => (state.activeChatId < 0 ? "inactive-message" : "active-message");
@@ -29,8 +46,10 @@ export class ChatListBlock extends Block {
         chatitem: testChatList(),
       }),
       chatFlow: new ChatFlow("ul", {
+        attr: { class: "chat-body__message-list" },
         message: testMessageList(),
       }),
+      errorMessage: "",
       events: {
         click: Handlers.onChatClick,
         input: Handlers.onInput,
@@ -48,14 +67,19 @@ export class ChatListBlock extends Block {
         chatHeaderTitle: getActiveChat()?.name,
       });
     });
-    bus.on("input:set-invalid", ({ value }: InputParams) => {
-      this.setProps({ isInvalidClass: "chat-message__input_invalid", value });
+    bus.on("input:set-invalid", ({ value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
+      this.setProps({ isInvalidClass: "chat-message__input_invalid", value, errorMessage });
+      // eslint-disable-next-line no-unused-expressions
+      relatedTarget;
     });
-    bus.on("input:set-valid", ({ value }: InputParams) => {
-      this.setProps({ isInvalidClass: "", value });
+    bus.on("input:set-valid", ({ value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
+      this.setProps({ isInvalidClass: "", value, errorMessage });
+      // eslint-disable-next-line no-unused-expressions
+      relatedTarget;
     });
     bus.on("chat:message-send", (message: string) => {
       state.newMessageText = message;
+      this.setProps({ isInvalidClass: "", errorMessage: "" });
       this._children.chatFlow.setProps({ message: updateTestMessageList() });
     });
   }
@@ -72,6 +96,7 @@ export class ChatListBlock extends Block {
         { message_name: this._props.message_name },
         { isInvalidClass: this._props.isInvalidClass },
         { value: this._props.value },
+        { errorMessage: this._props.errorMessage },
       ],
     });
   }

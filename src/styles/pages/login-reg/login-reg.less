@@ -19,8 +19,6 @@
 
   &__input-block {
     list-style-type: none;
-    margin-bottom: 10px;
-    display: flex;
   }
 
   &__submit {
@@ -49,6 +47,11 @@
 }
 
 .input-block {
+  &__container {
+    margin-bottom: 10px;
+    display: flex;
+  }
+
   &__title {
     width: 150px;
     display: inline-block;
@@ -59,7 +62,20 @@
     margin-right: 40px;
 
     &_invalid {
-      border: 2px solid red;
+      border: 2px solid @error_color;
     }
+  }
+
+  &__error-text {
+    display: inline-block;
+    color: @error_color;
+    width: calc(100% - 40px);
+    text-align: end;
+    margin-top: -10px;
+    margin-bottom: 10px;
+  }
+
+  &__error-text:empty {
+    display: none;
   }
 }

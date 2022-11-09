@@ -1,7 +1,11 @@
 import { Block } from "../../common/block";
 import { chatFlowTemplate } from "./chatFlow.tmpl";
 
-export class ChatFlow extends Block {
+type ChatFlowType = {
+  message: string,
+}
+
+export class ChatFlow extends Block<ChatFlowType> {
   render() {
     return this.compile(chatFlowTemplate, {
       loops: [

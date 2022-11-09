@@ -9,7 +9,7 @@ import { Page404Block } from "./pages/page404/page404Block";
 import { Page500Block } from "./pages/page500/page500Block";
 
 const pageName = window.location.pathname;
-let block: Block | null = null;
+let block: Block<{}> | null = null;
 switch(pageName) {
   case pages.main.url:
     block = new MainBlock();

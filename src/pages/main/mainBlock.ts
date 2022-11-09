@@ -3,7 +3,15 @@ import { mainTemplate } from "./main.tmpl";
 import { MenuLinks } from "../../components/menu-links/menuLinks";
 import { pages } from "../pages";
 
-export class MainBlock extends Block {
+type MainBlockType = {
+  attr: object,
+  mainTitle: string,
+  menuLinks: MenuLinks,
+  title: string,
+  url: string,
+}
+
+export class MainBlock extends Block<MainBlockType> {
   constructor() {
     super("main", {
       attr: { class: "flexcontainer" },
