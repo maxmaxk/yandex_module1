@@ -1,5 +1,5 @@
 export const chatItemTemplate = `
-<img class="chat-item__image" src="#chatitem.image#"></img>
+<img class="chat-item__image" alt="#chatitem.name#" src="#chatitem.image#"></img>
 <div class="chat-item__title">
     <span><b>#chatitem.name#</b></span>
     <div>

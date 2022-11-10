@@ -92,7 +92,7 @@ export class Block<Props extends KeyObject> {
     this._eventBus.emit(Block.EVENTS.FLOW_CDM);
   }
 
-  _componentDidUpdate(oldProps: object, newProps: object) {
+  _componentDidUpdate(oldProps: Props, newProps: Props) {
     const response = this.componentDidUpdate(oldProps, newProps);
     if (!response) {
       return;
@@ -100,11 +100,11 @@ export class Block<Props extends KeyObject> {
     this._render();
   }
 
-  componentDidUpdate(oldProps: object, newProps: object) {
+  componentDidUpdate(oldProps: Props, newProps: Props) {
     return JSON.stringify(oldProps) !== JSON.stringify(newProps);
   }
 
-  setProps = (nextProps: object) => {
+  setProps = (nextProps: Props) => {
     if (!nextProps) return;
     this._setUpdate = false;
     const oldValue = { ...this._props };
@@ -194,8 +194,8 @@ export class Block<Props extends KeyObject> {
     return document.createElement(tagName);
   }
 
-  compile(template: string, props: KeyObject) {
-    const propsAndStubs = { ...props };
+  compile(template: string, context: KeyObject) {
+    const propsAndStubs = { ...context };
 
     Object.entries(this._children).forEach(([key, child]) => {
       propsAndStubs.replaces.push({ [key]: `<div data-id="${child._id}"></div>` });

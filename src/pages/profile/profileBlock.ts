@@ -132,7 +132,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
     Handlers.busBind(this);
     bus.on("profile:change-mode", () => {
       state.dataChangeMode = !state.dataChangeMode;
-      this.setProps({ profileChangeDataTitle: getChangeDataTitle() });
+      this.setProps({ profileChangeDataTitle: getChangeDataTitle() } as ProfileBlockType);
       const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (["oldPassword", "newPassword", "avatar"].includes(item.id) ? { ...item, isHidden: getIsHidden() } : item));
