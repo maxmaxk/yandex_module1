@@ -2,6 +2,7 @@
     "extends": "stylelint-config-standard",
     "customSyntax": "postcss-less",
     "ignoreFiles": [
-        "dist/*"
+        "dist/*",
+        "src/styles/normalize.css"
     ]
 }

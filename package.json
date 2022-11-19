@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "Yandex learning project - chat module1",
   "source": "src/index.html",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "parcel build",
     "start": "parcel build && node server",
-    "dev": "parcel"
+    "dev": "parcel --https"
   },
   "repository": {
     "type": "git",

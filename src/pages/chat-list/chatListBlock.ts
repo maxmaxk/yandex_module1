@@ -14,9 +14,9 @@ type ChatListBlockType = {
   profileUrl: string,
   addChatText: string,
   removeChatText: string,
-  isActiveChat: boolean,
-  chatHeaderImage: string,
-  chatHeaderTitle: string,
+  isActiveChat: string,
+  chatHeaderImage: string | undefined,
+  chatHeaderTitle: string | undefined,
   message_name: string,
   isInvalidClass: string,
   value: string,
@@ -65,21 +65,21 @@ export class ChatListBlock extends Block<ChatListBlockType> {
         isActiveChat: getIsActiveChat(),
         chatHeaderImage: getActiveChat()?.image,
         chatHeaderTitle: getActiveChat()?.name,
-      });
+      } as ChatListBlockType);
     });
     bus.on("input:set-invalid", ({ value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
-      this.setProps({ isInvalidClass: "chat-message__input_invalid", value, errorMessage });
+      this.setProps({ isInvalidClass: "chat-message__input_invalid", value, errorMessage } as ChatListBlockType);
       // eslint-disable-next-line no-unused-expressions
       relatedTarget;
     });
     bus.on("input:set-valid", ({ value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
-      this.setProps({ isInvalidClass: "", value, errorMessage });
+      this.setProps({ isInvalidClass: "", value, errorMessage } as ChatListBlockType);
       // eslint-disable-next-line no-unused-expressions
       relatedTarget;
     });
     bus.on("chat:message-send", (message: string) => {
       state.newMessageText = message;
-      this.setProps({ isInvalidClass: "", errorMessage: "" });
+      this.setProps({ isInvalidClass: "", errorMessage: "" } as ChatListBlockType);
       this._children.chatFlow.setProps({ message: updateTestMessageList() });
     });
   }

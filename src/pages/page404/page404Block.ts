@@ -1,6 +1,5 @@
 import { Block } from "../../common/block";
 import { unknownTemplate } from "../unknown-page/unknownPage.tmpl";
-import { pages } from "../pages";
 
 type Page404BlockType = {
   attr: string,
@@ -16,8 +15,7 @@ export class Page404Block extends Block<Page404BlockType> {
       attr: { class: "flexcontainer" },
       unknownPageTitle: "404",
       unknownPageText: "Упс.. Такой страницы нет &#128533;",
-      backLinkText: "Назад к чатам",
-      backLink: pages.chartList.url,
+      backLinkText: "На главную",
     });
   }
 

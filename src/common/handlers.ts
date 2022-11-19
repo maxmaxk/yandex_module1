@@ -6,11 +6,14 @@ import { KeyObject, InputParams } from "./commonTypes";
 import { LoginBlock } from "../pages/login/loginBlock";
 import { ProfileBlock } from "../pages/profile/profileBlock";
 import { RegistrationBlock } from "../pages/registration/registrationBlock";
+import { Router } from "./router";
+import { Requests } from "./requests";
 
-type FormValidateData = {
-    keyName: string,
-    value: string,
-    errorMessage: string,
+export type FormValidateData = {
+    [keyName: string]: {
+      value: string,
+      errorMessage: string,
+    }
 };
 
 const bus = new EventBus();
@@ -26,7 +29,6 @@ export class Handlers {
 
   // @ts-ignore
   static onItemFocusOut(e) {
-    if(e.relatedTarget?.tagName === "BUTTON") return;
     if((e.target.tagName === "INPUT") || (e.target.tagName === "TEXTAREA")) {
       const validator = new Validator(e.target);
       const errorMessage = validator.getErrorMessage();
@@ -39,15 +41,17 @@ export class Handlers {
   static onProfileManagment(e) {
     if((e.target.className === "profile__change-data") && !state.dataChangeMode) {
       bus.emit("profile:change-mode");
-      e.preventDefault();
     }
     if(e.target.className === "profile__logout") {
       /**
       * TODO fetch logout request
       */
       console.log("logout request");
-      e.preventDefault();
     }
+    if(e.target.className === "profile__go-back") {
+      Router.back();
+    }
+    e.preventDefault();
   }
 
   // @ts-ignore
@@ -92,31 +96,27 @@ export class Handlers {
     // @ts-ignore
     const iter = data.keys();
     let isAllValid = true;
-    const formValidateData: FormValidateData[] = [];
+    const formValidateData: FormValidateData = {};
     while(true) {
       const { value, done } = iter.next();
       if(done) break;
       const validator = new Validator(value, data.get(value));
       const errorMessage = validator.getErrorMessage();
       const isValid: boolean = errorMessage === "";
-      formValidateData.push({
-        keyName: value,
+      formValidateData[value] = {
         value: data.get(value) as string,
         errorMessage,
-      });
+      };
       isAllValid &&= isValid;
     }
     if(isAllValid) {
-      /**
-      * TODO fetch form request
-      */
-      console.log("form request: ", formValidateData);
+      Requests.onSubmitRequest(e.target.id, formValidateData);
       if(e.target.id === "profile-form") bus.emit("profile:change-mode");
       if(e.target.id === "chat-message-form") bus.emit("chat:message-send", formValidateData[0].value);
     }else{
-      formValidateData.forEach((item) => {
-        const event = item.errorMessage === "" ? "input:set-valid" : "input:set-invalid";
-        bus.emit(event, document.getElementById(item.keyName), e.target, item.errorMessage);
+      Object.entries(formValidateData).forEach(([key, value]) => {
+        const event = value.errorMessage === "" ? "input:set-valid" : "input:set-invalid";
+        bus.emit(event, document.getElementById(key), e.target, value.errorMessage);
       });
     }
     e.preventDefault();
@@ -143,6 +143,7 @@ export class Handlers {
       }
       Block.restoreFocus(relatedTarget);
     });
+
     bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
       if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
         const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
@@ -162,6 +163,18 @@ export class Handlers {
         block._children.labledStateInputs.setProps({ items: newItemsProps });
       }
       Block.restoreFocus(relatedTarget);
+    });
+
+    bus.on("submit:start-waiting", () => {
+      block.setProps({ ...block._props, submitWaiting: " form__submit_waiting" });
+    });
+
+    bus.on("submit:stop-waiting", () => {
+      block.setProps({ ...block._props, submitWaiting: "" });
+    });
+
+    bus.on("submit:error", (msg: string) => {
+      block.setProps({ ...block._props, errorMessage: msg });
     });
   }
 }

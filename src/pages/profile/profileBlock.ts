@@ -5,11 +5,13 @@ import { LabledStateInputs } from "../../components/labled-state-inputs/labledSt
 import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
 import { KeyObject } from "../../common/commonTypes";
+import { Requests } from "../../common/requests";
 
 type ProfileBlockType = {
   getChangeDataTitle: string,
   profileImage: string,
   profileChangeDataTitle: string,
+  profileGoBackTitle: string,
   profileChangePasswordTitle: string,
   labledStateInputs: LabledStateInputs,
   profileTitle: string,
@@ -26,10 +28,11 @@ export class ProfileBlock extends Block<ProfileBlockType> {
     const getIsHidden = (): string => (state.dataChangeMode ? "" : " hidden");
     super("div", {
       attr: { class: "profile" },
-      profileTitle: "Князь Мышкин",
-      profileImage: "./resources/25.jpg",
+      profileTitle: "",
+      profileImage: "",
       profileChangeDataTitle: getChangeDataTitle(),
       profileChangePasswordTitle: "Изменить пароль",
+      profileGoBackTitle: "Назад",
       profileLogoutTitle: "Выйти",
       labledStateInputs: new LabledStateInputs("ul", {
         attr: { class: "profile__details" },
@@ -38,7 +41,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         items: [
           {
             title: "Имя",
-            value: "Князь",
+            value: "",
             id: "first_name",
             type: "text",
             isInvalidClass: "",
@@ -47,7 +50,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
           },
           {
             title: "Фамилия",
-            value: "Мышкин",
+            value: "",
             id: "second_name",
             type: "text",
             isInvalidClass: "",
@@ -56,7 +59,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
           },
           {
             title: "Логин",
-            value: "batman",
+            value: "",
             id: "login",
             type: "text",
             isInvalidClass: "",
@@ -65,7 +68,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
           },
           {
             title: "Имя в чате",
-            value: "little_mouse",
+            value: "",
             id: "display_name",
             type: "text",
             isInvalidClass: "",
@@ -74,7 +77,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
           },
           {
             title: "Электронная почта",
-            value: "batman@hollywood.com",
+            value: "",
             id: "email",
             type: "text",
             isInvalidClass: "",
@@ -83,7 +86,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
           },
           {
             title: "Телефон",
-            value: "+1911911911",
+            value: "",
             id: "phone",
             type: "text",
             isInvalidClass: "",
@@ -132,7 +135,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
     Handlers.busBind(this);
     bus.on("profile:change-mode", () => {
       state.dataChangeMode = !state.dataChangeMode;
-      this.setProps({ profileChangeDataTitle: getChangeDataTitle() });
+      this.setProps({ profileChangeDataTitle: getChangeDataTitle() } as ProfileBlockType);
       const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
         (["oldPassword", "newPassword", "avatar"].includes(item.id) ? { ...item, isHidden: getIsHidden() } : item));
@@ -142,6 +145,13 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         items: newItemsProps,
       });
     });
+    bus.on("update:start-waiting", () => {
+      this.setProps({ profileTitle: "Загрузка..." } as ProfileBlockType);
+    });
+    bus.on("update:stop-waiting", () => {
+      this.setProps({ profileTitle: "Готово" } as ProfileBlockType);
+    });
+    Requests.profileUpdate();
   }
 
   render() {
@@ -150,6 +160,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         { profileTitle: this._props.profileTitle },
         { profileImage: this._props.profileImage },
         { profileChangeDataTitle: this._props.profileChangeDataTitle },
+        { profileGoBackTitle: this._props.profileGoBackTitle },
         { dataChangeMode: this._props.dataChangeMode },
         { isReadOnly: this._props.isReadOnly },
         { profileChangePasswordTitle: this._props.profileChangePasswordTitle },

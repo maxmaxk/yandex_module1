@@ -8,6 +8,8 @@ type LoginBlockType = {
   attr: object,
   loginTitle: string,
   submitTitle: string,
+  submitWaiting: string,
+  errorMessage: string,
   registrationTitle: string,
   registrationUrl: string,
   labledInputs: LabledInputs
@@ -20,7 +22,9 @@ export class LoginBlock extends Block<LoginBlockType> {
       loginTitle: "Авторизация",
       submitTitle: "Вход",
       registrationTitle: "Создать профиль",
-      registrationUrl: pages.registration,
+      submitWaiting: "",
+      errorMessage: "",
+      registrationUrl: pages.registration.url,
       labledInputs: new LabledInputs("ul", {
         attr: { class: "form__input-blocks" },
         items: [
@@ -58,6 +62,8 @@ export class LoginBlock extends Block<LoginBlockType> {
         { loginTitle: this._props.loginTitle },
         { submitTitle: this._props.submitTitle },
         { registrationTitle: this._props.registrationTitle },
+        { submitWaiting: this._props.submitWaiting },
+        { errorMessage: this._props.errorMessage },
         { registrationUrl: this._props.registrationUrl },
       ],
     });
