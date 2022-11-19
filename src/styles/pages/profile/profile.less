@@ -32,7 +32,7 @@
   }
 
   &-detail {
-    border-bottom: solid 1px lightgray;
+    border-bottom: solid 1px @profile-detail-border-color;
     padding-bottom: 10px;
     margin-bottom: 10px;
 
@@ -50,7 +50,7 @@
       padding-top: 2px;
 
       &_invalid {
-        border: 2px solid red;
+        border: 2px solid @error_color;
       }
 
       &.no-change-mode {
@@ -85,6 +85,7 @@
   }
 
   &__change-data,
+  &__go-back,
   &__logout {
     text-decoration: none;
     text-align: center;

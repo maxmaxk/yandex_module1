@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "parcel build",
     "start": "parcel build && node server",
-    "dev": "parcel"
+    "dev": "parcel --https"
   },
   "repository": {
     "type": "git",

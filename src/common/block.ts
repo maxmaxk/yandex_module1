@@ -213,6 +213,9 @@ export class Block<Props extends KeyObject> {
 
   static restoreFocus(element: HTMLElement) {
     const findElement: HTMLElement | null = document.getElementById(element?.id);
-    if(findElement) findElement.focus();
+    if(findElement) {
+      findElement.focus();
+      if(findElement.tagName === "BUTTON") findElement.click();
+    }
   }
 }

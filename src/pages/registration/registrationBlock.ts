@@ -7,6 +7,8 @@ type RegistrationBlockType = {
   attr: object,
   registrationTitle: string,
   submitTitle: string,
+  submitWaiting: string,
+  errorMessage: string,
   labledInputs: LabledInputs,
   events: Object
 }
@@ -17,6 +19,8 @@ export class RegistrationBlock extends Block<RegistrationBlockType> {
       attr: { class: "flexcontainer" },
       registrationTitle: "Регистрация",
       submitTitle: "Зарегистрироваться",
+      submitWaiting: "",
+      errorMessage: "",
       labledInputs: new LabledInputs("ul", {
         attr: { class: "form__input-blocks" },
         items: [
@@ -85,6 +89,8 @@ export class RegistrationBlock extends Block<RegistrationBlockType> {
       replaces: [
         { registrationTitle: this._props.registrationTitle },
         { submitTitle: this._props.submitTitle },
+        { submitWaiting: this._props.submitWaiting },
+        { errorMessage: this._props.errorMessage },
       ],
     });
   }

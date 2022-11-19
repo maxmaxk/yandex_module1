@@ -8,6 +8,7 @@ export const profileTemplate = `
             #labledStateInputs#
             <div class="profile__managment-container">
                 <button class="profile__change-data">#profileChangeDataTitle#</button>
+                <button class="profile__go-back">#profileGoBackTitle#</button>
                 <button class="profile__logout">#profileLogoutTitle#</button>
             </div>
         </form>

@@ -16,8 +16,8 @@ export class Page500Block extends Block<Page500BlockType> {
       attr: { class: "flexcontainer" },
       unknownPageTitle: "500",
       unknownPageText: "Ой.. У нас что-то сломалось &#128551; Мы постараемся починить",
-      backLinkText: "Назад к чатам",
-      backLink: pages.chartList.url,
+      backLinkText: "На главную",
+      backLink: pages.chatList.url,
     });
   }
 
