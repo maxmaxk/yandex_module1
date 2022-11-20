@@ -45,10 +45,8 @@ export class Router {
       this.go(pages.page404.url);
       return;
     }
-    /* if (this._currentRoute) {
-      this._currentRoute.leave();
-    } */
     this._currentRoute = route;
+    route._block = null;
     route.render();
   }
 

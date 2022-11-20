@@ -80,6 +80,11 @@
     display: flex;
   }
 
+  &__error-msg {
+    color: @error_color;
+    text-align: center;
+  }
+
   &__logout {
     color: @logout-button-color;
   }
@@ -96,4 +101,13 @@
       color: @hover_color;
     }
   }
+
+  .form__submit_waiting {
+    background: url("../../../../static/resources/wait.gif");
+    background-repeat: no-repeat;
+    background-size: 23px;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  
 }

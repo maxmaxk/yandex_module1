@@ -1,5 +1,5 @@
 import { Block } from "./block";
-import { KeyObject } from "./commonTypes";
+import { KeyObject } from "./common";
 
 type RootQuery = {
   rootQuery: string,

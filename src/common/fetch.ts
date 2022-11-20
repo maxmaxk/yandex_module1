@@ -1,4 +1,4 @@
-import { KeyObject } from "./commonTypes";
+import { KeyObject } from "./common";
 
 type Options = {
     timeout?: number,
@@ -68,8 +68,11 @@ export class HTTPTransport {
       xhr.onerror = reject;
       xhr.timeout = timeout;
       xhr.ontimeout = reject;
+      xhr.withCredentials = true;
       if (isGet || !data) {
         xhr.send();
+      }else if(headers.mimeType === "multipart/form-data") {
+        xhr.send(data as any);
       }else{
         xhr.send(JSON.stringify(data));
       }

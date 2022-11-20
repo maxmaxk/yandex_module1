@@ -1,4 +1,4 @@
-import { KeyObject } from "./commonTypes";
+import { KeyObject } from "./common";
 
 export class Validator {
   targetName: string;
@@ -62,8 +62,8 @@ export class Validator {
     return reg.test(phone) ? "" : "Телефон должен содержать от 10 до 15 символов, состоять из цифр, может начинается с плюса";
   }
 
-  static getAvatarErrorMessage(avatar: string): string {
-    return (avatar !== "") ? "" : "Ссылка на аватар не может быть пустой строкой";
+  static getAvatarErrorMessage(): string {
+    return "";
   }
 
   static getMessageErrorMessage(message: string): string {

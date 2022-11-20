@@ -1,6 +1,6 @@
 import { EventBus } from "./eventBus";
 import { Templator } from "../templator/templator";
-import { KeyObject } from "./commonTypes";
+import { KeyObject, blockActions } from "./common";
 
 type Meta = {
   tagName: string,
@@ -8,13 +8,6 @@ type Meta = {
 };
 
 export class Block<Props extends KeyObject> {
-  static EVENTS = {
-    INIT: "init",
-    FLOW_CDM: "flow:component-did-mount",
-    FLOW_CDU: "flow:component-did-update",
-    FLOW_RENDER: "flow:render",
-  };
-
   _element: HTMLElement | null = null;
 
   _meta: Meta | null = null;
@@ -41,7 +34,7 @@ export class Block<Props extends KeyObject> {
     this._props = this._makePropsProxy({ ...props, __id: this._id });
     this._eventBus = new EventBus();
     this._registerEvents(this._eventBus);
-    this._eventBus.emit(Block.EVENTS.INIT);
+    this._eventBus.emit(blockActions.init);
   }
 
   // @ts-ignore
@@ -60,10 +53,10 @@ export class Block<Props extends KeyObject> {
   }
 
   _registerEvents(eventBus: EventBus) {
-    eventBus.on(Block.EVENTS.INIT, this.init.bind(this));
-    eventBus.on(Block.EVENTS.FLOW_CDM, this._componentDidMount.bind(this));
-    eventBus.on(Block.EVENTS.FLOW_CDU, this._componentDidUpdate.bind(this));
-    eventBus.on(Block.EVENTS.FLOW_RENDER, this._render.bind(this));
+    eventBus.on(blockActions.init, this.init.bind(this));
+    eventBus.on(blockActions.flowCDM, this._componentDidMount.bind(this));
+    eventBus.on(blockActions.flowCDU, this._componentDidUpdate.bind(this));
+    eventBus.on(blockActions.flowRender, this._render.bind(this));
   }
 
   _createResources() {
@@ -74,7 +67,7 @@ export class Block<Props extends KeyObject> {
 
   init() {
     this._createResources();
-    this._eventBus.emit(Block.EVENTS.FLOW_RENDER);
+    this._eventBus.emit(blockActions.flowRender);
   }
 
   _componentDidMount() {
@@ -89,7 +82,7 @@ export class Block<Props extends KeyObject> {
   }
 
   dispatchComponentDidMount() {
-    this._eventBus.emit(Block.EVENTS.FLOW_CDM);
+    this._eventBus.emit(blockActions.flowCDM);
   }
 
   _componentDidUpdate(oldProps: Props, newProps: Props) {
@@ -116,7 +109,7 @@ export class Block<Props extends KeyObject> {
       Object.assign(this._props, props);
     }
     if(this._setUpdate) {
-      this._eventBus.emit(Block.EVENTS.FLOW_CDU, oldValue, { ...this._props });
+      this._eventBus.emit(blockActions.flowCDU, oldValue, { ...this._props });
       this._setUpdate = false;
     }
   };

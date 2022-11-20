@@ -4,13 +4,15 @@ import { profileTemplate } from "./profile.tmpl";
 import { LabledStateInputs } from "../../components/labled-state-inputs/labledStateInputs";
 import { Handlers } from "../../common/handlers";
 import { EventBus } from "../../common/eventBus";
-import { KeyObject } from "../../common/commonTypes";
+import { KeyObject, updateActions, profileActions } from "../../common/common";
 import { Requests } from "../../common/requests";
 
 type ProfileBlockType = {
   getChangeDataTitle: string,
   profileImage: string,
   profileChangeDataTitle: string,
+  submitWaiting: string,
+  errorMessage: string,
   profileGoBackTitle: string,
   profileChangePasswordTitle: string,
   labledStateInputs: LabledStateInputs,
@@ -31,6 +33,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
       profileTitle: "",
       profileImage: "",
       profileChangeDataTitle: getChangeDataTitle(),
+      submitWaiting: "",
+      errorMessage: "",
       profileChangePasswordTitle: "Изменить пароль",
       profileGoBackTitle: "Назад",
       profileLogoutTitle: "Выйти",
@@ -113,9 +117,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
           },
           {
             title: "Аватар",
-            value: "",
             id: "avatar",
-            type: "text",
+            type: "file",
             isInvalidClass: "",
             isHidden: getIsHidden(),
             errorMessage: "",
@@ -133,7 +136,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
 
     const bus = new EventBus();
     Handlers.busBind(this);
-    bus.on("profile:change-mode", () => {
+    bus.on(profileActions.changeMode, () => {
       state.dataChangeMode = !state.dataChangeMode;
       this.setProps({ profileChangeDataTitle: getChangeDataTitle() } as ProfileBlockType);
       const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
@@ -145,11 +148,18 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         items: newItemsProps,
       });
     });
-    bus.on("update:start-waiting", () => {
+    bus.on(updateActions.startWaiting, () => {
       this.setProps({ profileTitle: "Загрузка..." } as ProfileBlockType);
     });
-    bus.on("update:stop-waiting", () => {
-      this.setProps({ profileTitle: "Готово" } as ProfileBlockType);
+    bus.on(updateActions.getData, (updateItems: KeyObject) => {
+      this.setProps({
+        profileTitle: updateItems.display_name ?? "",
+        profileImage: Requests.getAvatarResource(updateItems.avatar),
+      } as ProfileBlockType);
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
+        // eslint-disable-next-line implicit-arrow-linebreak
+        (updateItems[item.id] ? { ...item, value: updateItems[item.id] } : item));
+      this._children.labledStateInputs.setProps({ items: newItemsProps });
     });
     Requests.profileUpdate();
   }
@@ -160,6 +170,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         { profileTitle: this._props.profileTitle },
         { profileImage: this._props.profileImage },
         { profileChangeDataTitle: this._props.profileChangeDataTitle },
+        { submitWaiting: this._props.submitWaiting },
+        { errorMessage: this._props.errorMessage },
         { profileGoBackTitle: this._props.profileGoBackTitle },
         { dataChangeMode: this._props.dataChangeMode },
         { isReadOnly: this._props.isReadOnly },

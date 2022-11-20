@@ -2,7 +2,14 @@ import { state } from "./state";
 import { EventBus } from "./eventBus";
 import { Validator } from "./validator";
 import { Block } from "./block";
-import { KeyObject, InputParams } from "./commonTypes";
+import {
+  KeyObject,
+  InputParams,
+  inputActions,
+  profileActions,
+  chatActions,
+  submitActions,
+} from "./common";
 import { LoginBlock } from "../pages/login/loginBlock";
 import { ProfileBlock } from "../pages/profile/profileBlock";
 import { RegistrationBlock } from "../pages/registration/registrationBlock";
@@ -29,10 +36,11 @@ export class Handlers {
 
   // @ts-ignore
   static onItemFocusOut(e) {
-    if((e.target.tagName === "INPUT") || (e.target.tagName === "TEXTAREA")) {
+    if(((e.target.tagName === "INPUT") && (e.target.type !== "file")) || (e.target.tagName === "TEXTAREA")) {
+      if(!e.target.id) return;
       const validator = new Validator(e.target);
       const errorMessage = validator.getErrorMessage();
-      const event = errorMessage === "" ? "input:set-valid" : "input:set-invalid";
+      const event = errorMessage === "" ? inputActions.setValid : inputActions.setInvalid;
       bus.emit(event, e.target, e.relatedTarget, errorMessage);
     }
   }
@@ -40,45 +48,63 @@ export class Handlers {
   // @ts-ignore
   static onProfileManagment(e) {
     if((e.target.className === "profile__change-data") && !state.dataChangeMode) {
-      bus.emit("profile:change-mode");
+      bus.emit(profileActions.changeMode);
     }
     if(e.target.className === "profile__logout") {
-      /**
-      * TODO fetch logout request
-      */
-      console.log("logout request");
+      Requests.logout();
+      e.preventDefault();
     }
     if(e.target.className === "profile__go-back") {
       Router.back();
+      e.preventDefault();
     }
-    e.preventDefault();
   }
 
   // @ts-ignore
   static onChatClick(e) {
     switch (e.target.className) {
       case "top-menu__add-chat":
-        console.log("add new chat event");
+        bus.emit(chatActions.addChatPromptOpen);
+        break;
+      case "prompt-panel__add-chat":
+        bus.emit(chatActions.addChat);
+        bus.emit(chatActions.promptClose);
+        break;
+      case "prompt-panel__add-user-to-chat":
+        bus.emit(chatActions.addUserToChat);
+        bus.emit(chatActions.promptClose);
+        break;
+      case "prompt-panel__remove-user-from-chat":
+        bus.emit(chatActions.removeUserFromChat);
+        bus.emit(chatActions.promptClose);
+        break;
+      case "prompt-panel__cancel-button":
+        bus.emit(chatActions.promptClose);
         break;
       case "chat-message__addon":
         console.log("add attachment to message event");
+        break;
+      case "chat-header__add-user":
+        bus.emit(chatActions.addUserToChatPromptOpen);
+        break;
+      case "chat-header__remove-user":
+        bus.emit(chatActions.removeUserFromChatPromptOpen);
+        break;
+      case "chat-header__remove-chat":
+        console.log("remove chat event");
         break;
       default:
         const chatContainer = Handlers.getContainer(e.target, "chat-item__container");
         if(chatContainer) {
           state.newMessageText = "";
-          const newActiveChatId = parseInt(chatContainer.id.slice(8), 10);
+          const newActiveChatId = parseInt(chatContainer.id, 10);
           if(!Number.isNaN(newActiveChatId)) state.activeChatId = newActiveChatId;
           let chatItemList = document.getElementsByClassName("chat-item-list")[0];
           const { scrollTop } = chatItemList;
-          bus.emit("chat:change-active");
+          bus.emit(chatActions.changeActive);
           // eslint-disable-next-line prefer-destructuring
           chatItemList = document.getElementsByClassName("chat-item-list")[0];
           chatItemList.scrollTo(0, scrollTop);
-        }
-        const removeChatContainer = Handlers.getContainer(e.target, "chat-header__remover");
-        if(removeChatContainer) {
-          console.log("remove chat event");
         }
     }
   }
@@ -88,20 +114,30 @@ export class Handlers {
     if(e.target.className === "search-panel__input") {
       console.log("chat filter change event");
     }
+    if(e.target.className === "prompt-panel__input") {
+      state.promptInput = e.target.value;
+    }
   }
 
   // @ts-ignore
-  static onFormSubmit(e) {
+  static async onFormSubmit(e) {
+    e.preventDefault();
     const data = new FormData(e.target);
     // @ts-ignore
     const iter = data.keys();
     let isAllValid = true;
+    let noPasswordChangeMode = false;
     const formValidateData: FormValidateData = {};
     while(true) {
       const { value, done } = iter.next();
       if(done) break;
       const validator = new Validator(value, data.get(value));
-      const errorMessage = validator.getErrorMessage();
+      let errorMessage = validator.getErrorMessage();
+      if((e.target.id === "profile-form") && (value === "oldPassword") && (data.get(value) === "")) {
+        noPasswordChangeMode = true;
+        errorMessage = "";
+      }
+      if(noPasswordChangeMode && (value === "newPassword")) errorMessage = "";
       const isValid: boolean = errorMessage === "";
       formValidateData[value] = {
         value: data.get(value) as string,
@@ -110,70 +146,78 @@ export class Handlers {
       isAllValid &&= isValid;
     }
     if(isAllValid) {
-      Requests.onSubmitRequest(e.target.id, formValidateData);
-      if(e.target.id === "profile-form") bus.emit("profile:change-mode");
-      if(e.target.id === "chat-message-form") bus.emit("chat:message-send", formValidateData[0].value);
+      await Requests.onSubmitRequest(e.target.id, formValidateData);
+      if(e.target.id === "profile-form") {
+        bus.emit(profileActions.changeMode);
+        Requests.profileUpdate();
+      }
+      if(e.target.id === "chat-message-form") bus.emit(chatActions.changeActive, formValidateData[0].value);
     }else{
       Object.entries(formValidateData).forEach(([key, value]) => {
-        const event = value.errorMessage === "" ? "input:set-valid" : "input:set-invalid";
+        const event = value.errorMessage === "" ? inputActions.setValid : inputActions.setInvalid;
         bus.emit(event, document.getElementById(key), e.target, value.errorMessage);
       });
     }
-    e.preventDefault();
   }
 
   static busBind<T extends KeyObject>(block: Block<T>) {
-    bus.on("input:set-invalid", ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
-      if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
-        const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
-          // eslint-disable-next-line implicit-arrow-linebreak
-          (item.id === id ? {
-            ...item, value, errorMessage, isInvalidClass: "input-block__input_invalid",
-          } : item));
-        block._children.labledInputs.setProps({ items: newItemsProps });
-      }
-      if(block instanceof ProfileBlock) {
-        const newItemsProps = block._children.labledStateInputs._props.items
-          .map((item: KeyObject) =>
-          // eslint-disable-next-line implicit-arrow-linebreak
+    bus.on(
+      inputActions.setInvalid,
+      ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
+        if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
+          const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
+            // eslint-disable-next-line implicit-arrow-linebreak
             (item.id === id ? {
-              ...item, value, errorMessage, isInvalidClass: " profile-detail__value_invalid",
+              ...item, value, errorMessage, isInvalidClass: "input-block__input_invalid",
             } : item));
-        block._children.labledStateInputs.setProps({ items: newItemsProps });
-      }
-      Block.restoreFocus(relatedTarget);
-    });
+          block._children.labledInputs.setProps({ items: newItemsProps });
+        }
+        if(block instanceof ProfileBlock) {
+          const newItemsProps = block._children.labledStateInputs._props.items
+            .map((item: KeyObject) =>
+            // eslint-disable-next-line implicit-arrow-linebreak
+              (item.id === id ? {
+                ...item, value, errorMessage, isInvalidClass: " profile-detail__value_invalid",
+              } : item));
+          block._children.labledStateInputs.setProps({ items: newItemsProps });
+        }
+        Block.restoreFocus(relatedTarget);
+      },
+    );
 
-    bus.on("input:set-valid", ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
-      if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
-        const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
-          // eslint-disable-next-line implicit-arrow-linebreak
-          (item.id === id ? {
-            ...item, value, errorMessage, isInvalidClass: "",
-          } : item));
-        block._children.labledInputs.setProps({ items: newItemsProps });
-      }
-      if(block instanceof ProfileBlock) {
-        const newItemsProps = block._children.labledStateInputs._props.items
-          .map((item: KeyObject) =>
-          // eslint-disable-next-line implicit-arrow-linebreak
+    bus.on(
+      inputActions.setValid,
+      ({ id, value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
+        if((block instanceof LoginBlock) || (block instanceof RegistrationBlock)) {
+          const newItemsProps = block._children.labledInputs._props.items.map((item: KeyObject) =>
+            // eslint-disable-next-line implicit-arrow-linebreak
             (item.id === id ? {
               ...item, value, errorMessage, isInvalidClass: "",
             } : item));
-        block._children.labledStateInputs.setProps({ items: newItemsProps });
-      }
-      Block.restoreFocus(relatedTarget);
-    });
+          block._children.labledInputs.setProps({ items: newItemsProps });
+        }
+        if(block instanceof ProfileBlock) {
+          const newItemsProps = block._children.labledStateInputs._props.items
+            .map((item: KeyObject) =>
+            // eslint-disable-next-line implicit-arrow-linebreak
+              (item.id === id ? {
+                ...item, value, errorMessage, isInvalidClass: "",
+              } : item));
+          block._children.labledStateInputs.setProps({ items: newItemsProps });
+        }
+        Block.restoreFocus(relatedTarget);
+      },
+    );
 
-    bus.on("submit:start-waiting", () => {
+    bus.on(submitActions.startWaiting, () => {
       block.setProps({ ...block._props, submitWaiting: " form__submit_waiting" });
     });
 
-    bus.on("submit:stop-waiting", () => {
+    bus.on(submitActions.stopWaiting, () => {
       block.setProps({ ...block._props, submitWaiting: "" });
     });
 
-    bus.on("submit:error", (msg: string) => {
+    bus.on(submitActions.error, (msg: string) => {
       block.setProps({ ...block._props, errorMessage: msg });
     });
   }
