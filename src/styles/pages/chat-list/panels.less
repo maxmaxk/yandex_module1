@@ -38,3 +38,17 @@
     display: block;
   }
 }
+
+.prompt-panel__container {
+  display: none;
+  &_visible {
+    position: absolute;
+    left: calc(50% - 170px);
+    top: 100px;
+    width: 340px;
+    height: 25px;
+    background-color: @message_info_color;
+    display: flex;
+    justify-content: space-between;
+  }
+}

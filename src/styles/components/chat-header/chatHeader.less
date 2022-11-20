@@ -19,8 +19,25 @@
     line-height: 45px;
   }
 
-  &__remover {
+  &__add-user, &__remove-user {
     line-height: 45px;
+    font-size: 48px;
+    margin-right: 16px;
+    cursor: pointer;
+  }
+
+  &__add-user {
+    color: @send-button-background-color;
+  }
+
+  &__remove-user {
+    color: @chat-remove-button-color;
+    transform: rotate(45deg);
+  }
+
+  &__remove-chat {
+    line-height: 45px;
+    font-size: 32px;
     color: @chat-remove-button-color;
     cursor: pointer;
   }

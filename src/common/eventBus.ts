@@ -1,4 +1,4 @@
-import { KeyObject } from "./commonTypes";
+import { KeyObject } from "./common";
 
 export class EventBus {
   listeners: KeyObject;

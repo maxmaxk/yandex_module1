@@ -1,4 +1,9 @@
-import { KeyObject } from "./commonTypes";
+import {
+  KeyObject,
+  submitActions,
+  updateActions,
+  chatActions,
+} from "./common";
 import { HTTPTransport, METHODS } from "./fetch";
 import { EventBus } from "./eventBus";
 import { Router } from "./router";
@@ -8,20 +13,33 @@ import { FormValidateData } from "./handlers";
 type ReqParams = {
   url: string,
   method: string,
+  targetId?: string,
 };
 
 export type SignUpData = {
-  first_name: string,
-  second_name: string,
-  login: string,
-  email: string,
-  password: string,
-  phone: string,
+  first_name: KeyObject,
+  second_name: KeyObject,
+  login: KeyObject,
+  email: KeyObject,
+  password: KeyObject,
+  phone: KeyObject,
 }
 
 export type SignInData = {
-  login: string,
-  password: string,
+  login: KeyObject,
+  password: KeyObject,
+}
+
+export type ProfileChangeData = {
+  first_name: KeyObject,
+  second_name: KeyObject,
+  display_name: KeyObject,
+  login: KeyObject,
+  email: KeyObject,
+  phone: KeyObject,
+  oldPassword: KeyObject,
+  newPassword: KeyObject,
+  avatar: KeyObject,
 }
 
 const baseUrl = "https://ya-praktikum.tech/api/v2";
@@ -29,37 +47,95 @@ const reqParams: {[key: string]: ReqParams} = {
   signUp: {
     url: "/auth/signup",
     method: METHODS.POST,
+    targetId: "registration",
   },
   signIn: {
     url: "/auth/signin",
     method: METHODS.POST,
+    targetId: "user-login",
   },
   getUser: {
     url: "/auth/user",
     method: METHODS.GET,
   },
+  profileChange: {
+    url: "/user/profile",
+    method: METHODS.PUT,
+    targetId: "profile-form",
+  },
+  passwordChange: {
+    url: "/user/password",
+    method: METHODS.PUT,
+  },
+  avatarChange: {
+    url: "/user/profile/avatar",
+    method: METHODS.PUT,
+  },
+  logout: {
+    url: "/auth/logout",
+    method: METHODS.POST,
+  },
+  getChats: {
+    url: "/chats",
+    method: METHODS.GET,
+  },
+  addChat: {
+    url: "/chats",
+    method: METHODS.POST,
+  },
+  getChatToken: {
+    url: "/chats/token",
+    method: METHODS.POST,
+  },
+  addUserToChat: {
+    url: "/chats/users",
+    method: METHODS.PUT,
+  },
+  removeUserFromChat: {
+    url: "/chats/users",
+    method: METHODS.DELETE,
+  },
+  getUserId: {
+    url: "/user/search",
+    method: METHODS.POST,
+  },
 };
-
 const statusOK = 200;
-const bus = new EventBus();
-const router = new Router(".root");
-
 const methods: KeyObject = {
   [METHODS.GET]: HTTPTransport.get,
   [METHODS.POST]: HTTPTransport.post,
+  [METHODS.PUT]: HTTPTransport.put,
+  [METHODS.DELETE]: HTTPTransport.delete,
 };
 
 export class Requests {
+  static bus = new EventBus();
+
+  static router = new Router(".root");
+
   static makeRequest(reqParam: ReqParams, options?: KeyObject) {
     return methods[reqParam.method](`${baseUrl}${reqParam.url}`, options);
   }
 
   static getOptions(dataObj: KeyObject) {
     const dataValue = Object.keys(dataObj).reduce((acc: KeyObject, item: string) => {
-      acc[item] = dataObj[item].value;
+      if(dataObj[item]?.value) acc[item] = dataObj[item].value;
       return acc;
     }, {});
     return { headers: { "content-type": "application/json", credentials: "include" }, data: dataValue };
+  }
+
+  static getAvatarOptions(dataObj: KeyObject) {
+    const formData = new FormData();
+    formData.append("avatar", dataObj as File);
+    return {
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        mimeType: "multipart/form-data",
+        credentials: "include",
+      },
+      data: formData,
+    };
   }
 
   static signUp(signUpData: SignUpData) {
@@ -74,47 +150,198 @@ export class Requests {
     return Requests.makeRequest(reqParams.getUser);
   }
 
-  static async onSubmitRequest(id: string, formValidateData: FormValidateData) {
-    bus.emit("submit:start-waiting");
+  static profileChange(profileChangeData: ProfileChangeData) {
+    const profileChangeAccount = {
+      ...profileChangeData, oldPassword: null, newPassword: null, avatar: null,
+    };
+    const profileChangePassword: KeyObject = {};
+    profileChangePassword.oldPassword = profileChangeData.oldPassword;
+    profileChangePassword.newPassword = profileChangeData.newPassword;
+    const profileChangeAvatar = profileChangeData.avatar.value;
+    let chain = Promise.resolve();
+    chain = chain.then(() =>
+      // eslint-disable-next-line implicit-arrow-linebreak
+      Requests.makeRequest(reqParams.profileChange, Requests.getOptions(profileChangeAccount)));
+    if(profileChangePassword.oldPassword.value) {
+      chain = chain.then(() =>
+        // eslint-disable-next-line implicit-arrow-linebreak
+        Requests.makeRequest(reqParams.passwordChange, Requests.getOptions(profileChangePassword)));
+    }
+    if(profileChangeAvatar.name) {
+      chain = chain.then(() =>
+        // eslint-disable-next-line implicit-arrow-linebreak
+        Requests.makeRequest(
+          reqParams.avatarChange,
+          Requests.getAvatarOptions(profileChangeAvatar),
+        ));
+    }
+    return chain;
+  }
+
+  static async logout() {
+    await Requests.makeRequest(reqParams.logout);
+    Requests.router.go(pages.login.url);
+  }
+
+  static async onSubmitRequest(targetId: string, formValidateData: FormValidateData) {
+    Requests.bus.emit(submitActions.error, "");
+    Requests.bus.emit(submitActions.startWaiting);
     try{
-      const result = await Requests.submitData(id, formValidateData);
+      const result = await Requests.submitData(targetId, formValidateData);
       if(result.status === statusOK) {
-        if((id === "registration") || (id === "user-login")) {
-          router.go(pages.chatList.url);
+        if((targetId === reqParams.signUp.targetId) || (targetId === reqParams.signIn.targetId)) {
+          Requests.router.go(pages.chatList.url);
         }
       }else{
         try {
           const reason = JSON.parse(result.response).reason as string;
-          bus.emit("submit:error", `Ошибка: ${reason}`);
+          if(reason === "User already in system") Requests.router.go(pages.chatList.url);
+          Requests.bus.emit(submitActions.error, `Ошибка: ${reason}`);
         }catch(error) {
-          bus.emit("submit:error", "Неизвестная ошибка сервера");
+          Requests.bus.emit(submitActions.error, "Неизвестная ошибка сервера");
         }
       }
     }catch(error) {
-      bus.emit("submit:error", error.message ?? "Ошибка сервера");
+      Requests.bus.emit(submitActions.error, error.message ?? "Ошибка сервера");
     }
-    bus.emit("submit:stop-waiting");
+    Requests.bus.emit(submitActions.stopWaiting);
   }
 
-  static submitData(id: string, formValidateData: unknown) {
-    switch(id) {
-      case "registration":
+  static submitData(targetId: string, formValidateData: unknown) {
+    switch(targetId) {
+      case reqParams.signUp.targetId:
         return Requests.signUp(formValidateData as SignUpData);
-      case "user-login":
+      case reqParams.signIn.targetId:
         return Requests.signIn(formValidateData as SignInData);
+      case reqParams.profileChange.targetId:
+        return Requests.profileChange(formValidateData as ProfileChangeData);
       default:
         return Promise.reject(new Error("Cannot assign request method to form id"));
     }
   }
 
   static async profileUpdate() {
-    bus.emit("update:start-waiting");
+    Requests.bus.emit(updateActions.startWaiting);
     const result = await Requests.getUser();
     if(result.status === statusOK) {
-      console.log("result=", result);
+      try{
+        Requests.bus.emit(updateActions.getData, JSON.parse(result.response));
+      }catch(error) {
+        Requests.bus.emit(submitActions.error, error.message);
+      }
     }else{
-      router.go(pages.login.url);
+      Requests.router.go(pages.login.url);
     }
-    bus.emit("update:stop-waiting");
+  }
+
+  static getAvatarResource(resourceId: string | null): string {
+    if(resourceId) return `${baseUrl}/resources${resourceId}`;
+    return "./resources/no-avatar.jpg";
+  }
+
+  static async getChats(titleFilter: string) {
+    const result = await Requests.makeRequest(
+      reqParams.getChats,
+      Requests.getOptions({ title: { value: titleFilter } }),
+    );
+    try{
+      const response = JSON.parse(result.response);
+      if(result.status === statusOK) {
+        Requests.bus.emit(chatActions.getChatList, response);
+        Requests.bus.emit(chatActions.errorMsg, "");
+      }else if(response.reason === "Cookie is not valid") {
+        Requests.router.go(pages.login.url);
+      }else{
+        Requests.bus.emit(chatActions.errorMsg, response.reason);
+      }
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
+  }
+
+  static async addChat(chatTitle: string) {
+    const result = await Requests.makeRequest(
+      reqParams.addChat,
+      Requests.getOptions({ title: { value: chatTitle } }),
+    );
+    try{
+      const response = JSON.parse(result.response);
+      if(result.status === statusOK) {
+        Requests.getChats("");
+      }else{
+        Requests.bus.emit(chatActions.errorMsg, response.reason);
+      }
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
+  }
+
+  static getUserId(login: string) {
+    return Requests.makeRequest(
+      reqParams.getUserId,
+      Requests.getOptions({ login: { value: login } }),
+    );
+  }
+
+  static async addUserToChat(login: string, chatId: string) {
+    const user = await Requests.getUserId(login);
+    try{
+      const userInfo = JSON.parse(user.response);
+      if(!userInfo[0]) {
+        Requests.bus.emit(chatActions.errorMsg, "User not found");
+        return;
+      }
+      const result = await Requests.makeRequest(
+        reqParams.addUserToChat,
+        Requests.getOptions({ users: { value: [userInfo[0].id] }, chatId: { value: chatId } }),
+      );
+      if(result.status === statusOK) {
+        console.log("user added");
+      }else{
+        const response = JSON.parse(result.response);
+        Requests.bus.emit(chatActions.errorMsg, response.reason);
+      }
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
+  }
+
+  static async removeUserFromChat(login: string, chatId: string) {
+    const user = await Requests.getUserId(login);
+    try{
+      const userInfo = JSON.parse(user.response);
+      if(!userInfo[0]) {
+        Requests.bus.emit(chatActions.errorMsg, "User not found");
+        return;
+      }
+      const result = await Requests.makeRequest(
+        reqParams.removeUserFromChat,
+        Requests.getOptions({ users: { value: [userInfo[0].id] }, chatId: { value: chatId } }),
+      );
+      if(result.status === statusOK) {
+        console.log("user removed");
+      }else{
+        const response = JSON.parse(result.response);
+        Requests.bus.emit(chatActions.errorMsg, response.reason);
+      }
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
+  }
+
+  static async getChatToken(chatId: string) {
+    const tokenReqParams = { ...reqParams.getChatToken };
+    tokenReqParams.url += `/${chatId}`;
+    const result = await Requests.makeRequest(tokenReqParams);
+    try{
+      const response = JSON.parse(result.response);
+      if(result.status === statusOK) {
+        Requests.bus.emit(chatActions.openSocket, response.token);
+      }else{
+        Requests.bus.emit(chatActions.errorMsg, response.reason);
+      }
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
   }
 }

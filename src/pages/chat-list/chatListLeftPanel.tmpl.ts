@@ -5,6 +5,7 @@ export const chatListLeftPanelTemplate = `
 <div class="left-panel-container">
     ${topMenuTemplate}
     ${searchPanelTemplate}
+    <span class="left-panel__error-msg">#panelErrorMessage#</span>
     #chatItems#
 </div>
 `;

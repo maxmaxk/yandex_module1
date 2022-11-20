@@ -7,7 +7,8 @@ export const profileTemplate = `
         <form method="post" id="profile-form">
             #labledStateInputs#
             <div class="profile__managment-container">
-                <button class="profile__change-data">#profileChangeDataTitle#</button>
+                <span class="profile__error-msg">#errorMessage#</span>
+                <button class="profile__change-data#submitWaiting#" id="form-submit">#profileChangeDataTitle#</button>
                 <button class="profile__go-back">#profileGoBackTitle#</button>
                 <button class="profile__logout">#profileLogoutTitle#</button>
             </div>
