@@ -214,7 +214,10 @@ export class Requests {
       }else{
         try {
           const reason = JSON.parse(result.response).reason as string;
-          if(reason === "User already in system") Requests.router.go(pages.chatList.url);
+          if(reason === "User already in system") {
+            Requests.router.go(pages.chatList.url);
+            return;
+          }
           Requests.bus.emit(submitActions.error, `Ошибка: ${reason}`);
         }catch(error) {
           Requests.bus.emit(submitActions.error, "Неизвестная ошибка сервера");
