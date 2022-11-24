@@ -27,6 +27,10 @@ export class EventBus {
     this.listeners[event] = this.listeners[event].filter((item: Function) => (item !== callback));
   }
 
+  clear() {
+    this.listeners = {};
+  }
+
   // @ts-ignore
   emit(event: string, ...args) {
     if(!this.listeners[event]) throw new Error(`Invalid event ${event}`);

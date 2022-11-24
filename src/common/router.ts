@@ -1,6 +1,7 @@
 import { Route } from "./route";
 import { Block } from "./block";
 import { pages } from "../pages/pages";
+import { EventBus } from "./eventBus";
 
 export class Router {
   static __instance: Router;
@@ -51,6 +52,8 @@ export class Router {
   }
 
   go(pathname: string) {
+    const bus = new EventBus();
+    bus.clear();
     this.history.pushState({}, "", pathname);
     this._onRoute(pathname);
   }
