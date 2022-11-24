@@ -9,6 +9,8 @@ export type InputParams = {
 
 export const profileActions = {
   changeMode: "profile:change-mode",
+  changePassEnable: "profile:change-pass-enabled",
+  changePassDisable: "profile:change-pass-disabled",
 };
 
 export const inputActions = {
@@ -29,17 +31,22 @@ export const updateActions = {
 
 export const chatActions = {
   changeActive: "chat:change-active",
-  messageSend: "chat:message-send",
   getChatList: "chat:get-list",
+  getHistory: "chat:get-history",
+  getMessage: "chat:get-message",
   addChatPromptOpen: "chat:addchatprompt-open",
   addUserToChatPromptOpen: "chat:addusertochatprompt-open",
   removeUserFromChatPromptOpen: "chat:removeuserfromchatprompt-open",
+  removeChatPromptOpen: "chat:removechatprompt-open",
   addChat: "chat:add",
   addUserToChat: "chat:addusertochat",
   removeUserFromChat: "chat:removeuserfromchat",
+  removeChat: "chat:removechat",
   promptClose: "chat:prompt-close",
   errorMsg: "chat:error-msg",
   openSocket: "chat:open-socket",
+  scrollDown: "chat:scroll-down",
+  highlightActive: "chat:highlight-active",
 };
 
 export const blockActions = {

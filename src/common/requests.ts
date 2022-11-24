@@ -9,10 +9,11 @@ import { EventBus } from "./eventBus";
 import { Router } from "./router";
 import { pages } from "../pages/pages";
 import { FormValidateData } from "./handlers";
+import { ChatWebSocket } from "./chatwebsocket";
 
 type ReqParams = {
   url: string,
-  method: string,
+  method: string | null,
   targetId?: string,
 };
 
@@ -40,6 +41,10 @@ export type ProfileChangeData = {
   oldPassword: KeyObject,
   newPassword: KeyObject,
   avatar: KeyObject,
+}
+
+export type SendMessageData = {
+  message: KeyObject,
 }
 
 const baseUrl = "https://ya-praktikum.tech/api/v2";
@@ -95,9 +100,22 @@ const reqParams: {[key: string]: ReqParams} = {
     url: "/chats/users",
     method: METHODS.DELETE,
   },
+  removeChat: {
+    url: "/chats",
+    method: METHODS.DELETE,
+  },
   getUserId: {
     url: "/user/search",
     method: METHODS.POST,
+  },
+  getUserById: {
+    url: "/user",
+    method: METHODS.GET,
+  },
+  sendMessage: {
+    url: "",
+    method: null,
+    targetId: "chat-message-form",
   },
 };
 const statusOK = 200;
@@ -114,6 +132,7 @@ export class Requests {
   static router = new Router(".root");
 
   static makeRequest(reqParam: ReqParams, options?: KeyObject) {
+    if(!reqParam.method) throw new Error("Method not found");
     return methods[reqParam.method](`${baseUrl}${reqParam.url}`, options);
   }
 
@@ -215,6 +234,8 @@ export class Requests {
         return Requests.signIn(formValidateData as SignInData);
       case reqParams.profileChange.targetId:
         return Requests.profileChange(formValidateData as ProfileChangeData);
+      case reqParams.sendMessage.targetId:
+        return Requests.sendMessage(formValidateData as SendMessageData);
       default:
         return Promise.reject(new Error("Cannot assign request method to form id"));
     }
@@ -240,11 +261,11 @@ export class Requests {
   }
 
   static async getChats(titleFilter: string) {
-    const result = await Requests.makeRequest(
-      reqParams.getChats,
-      Requests.getOptions({ title: { value: titleFilter } }),
-    );
     try{
+      const result = await Requests.makeRequest(
+        reqParams.getChats,
+        Requests.getOptions({ title: { value: titleFilter } }),
+      );
       const response = JSON.parse(result.response);
       if(result.status === statusOK) {
         Requests.bus.emit(chatActions.getChatList, response);
@@ -260,11 +281,11 @@ export class Requests {
   }
 
   static async addChat(chatTitle: string) {
-    const result = await Requests.makeRequest(
-      reqParams.addChat,
-      Requests.getOptions({ title: { value: chatTitle } }),
-    );
     try{
+      const result = await Requests.makeRequest(
+        reqParams.addChat,
+        Requests.getOptions({ title: { value: chatTitle } }),
+      );
       const response = JSON.parse(result.response);
       if(result.status === statusOK) {
         Requests.getChats("");
@@ -307,8 +328,8 @@ export class Requests {
   }
 
   static async removeUserFromChat(login: string, chatId: string) {
-    const user = await Requests.getUserId(login);
     try{
+      const user = await Requests.getUserId(login);
       const userInfo = JSON.parse(user.response);
       if(!userInfo[0]) {
         Requests.bus.emit(chatActions.errorMsg, "User not found");
@@ -329,11 +350,30 @@ export class Requests {
     }
   }
 
-  static async getChatToken(chatId: string) {
-    const tokenReqParams = { ...reqParams.getChatToken };
-    tokenReqParams.url += `/${chatId}`;
-    const result = await Requests.makeRequest(tokenReqParams);
+  static async removeChat(chatId: string) {
     try{
+      const chatWebSocket = new ChatWebSocket();
+      chatWebSocket.close();
+      const result = await Requests.makeRequest(
+        reqParams.removeChat,
+        Requests.getOptions({ chatId: { value: chatId } }),
+      );
+      if(result.status === statusOK) {
+        console.log("chat removed");
+      }else{
+        const response = JSON.parse(result.response);
+        Requests.bus.emit(chatActions.errorMsg, response.reason);
+      }
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
+  }
+
+  static async getChatToken(chatId: string) {
+    try{
+      const tokenReqParams = { ...reqParams.getChatToken };
+      tokenReqParams.url += `/${chatId}`;
+      const result = await Requests.makeRequest(tokenReqParams);
       const response = JSON.parse(result.response);
       if(result.status === statusOK) {
         Requests.bus.emit(chatActions.openSocket, response.token);
@@ -342,6 +382,32 @@ export class Requests {
       }
     }catch(error) {
       Requests.bus.emit(chatActions.errorMsg, error.message);
+    }
+  }
+
+  static async getUserById(userId: number) {
+    try{
+      const getUserByIdParams = { ...reqParams.getUserById };
+      getUserByIdParams.url += `/${userId}`;
+      const result = await Requests.makeRequest(getUserByIdParams);
+      const response = JSON.parse(result.response);
+      if(result.status === statusOK) return response;
+      console.log(`User id ${userId} not found`);
+      return null;
+    }catch(error) {
+      Requests.bus.emit(chatActions.errorMsg, error.message);
+      return null;
+    }
+  }
+
+  static async sendMessage(sendMessageData: SendMessageData) {
+    const chatWebSocket = new ChatWebSocket();
+    try{
+      await chatWebSocket.sendMessage(sendMessageData);
+      return Promise.resolve({ status: statusOK });
+    }catch(error) {
+      console.log(`error send message ${error.message}`);
+      return Promise.reject();
     }
   }
 }

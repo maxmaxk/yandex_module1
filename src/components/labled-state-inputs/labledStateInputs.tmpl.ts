@@ -8,7 +8,9 @@ export const labledStateInputsTemplate = `
             #isReadOnly#
             name=#item.id#
             id=#item.id#
-            type=#item.type#>
+            type=#item.type#
+            #item.disabled#
+            #item.checked#
         </input>
     </div>
     <span class="profile-detail__error-text#dataChangeMode#">#item.errorMessage#</span>
