@@ -59,8 +59,6 @@ export class Handlers {
       e.preventDefault();
     }
     if(e.target.name === "changePass") {
-      console.log("e.target=", e.target.name);
-      console.log("e.target=", e.target.checked);
       bus.emit(e.target.checked
         ? profileActions.changePassEnable
         : profileActions.changePassDisable);
@@ -162,8 +160,6 @@ export class Handlers {
         bus.emit(profileActions.changeMode);
         Requests.profileUpdate();
       }
-      /* if(e.target.id === "chat-message-form")
-      bus.emit(chatActions.changeActive, formValidateData[0].value); */
     }else{
       Object.entries(formValidateData).forEach(([key, value]) => {
         const event = value.errorMessage === "" ? inputActions.setValid : inputActions.setInvalid;

@@ -181,7 +181,7 @@ export class Requests {
     chain = chain.then(() =>
       // eslint-disable-next-line implicit-arrow-linebreak
       Requests.makeRequest(reqParams.profileChange, Requests.getOptions(profileChangeAccount)));
-    if(profileChangePassword.oldPassword.value) {
+    if(profileChangePassword.oldPassword?.value) {
       chain = chain.then(() =>
         // eslint-disable-next-line implicit-arrow-linebreak
         Requests.makeRequest(reqParams.passwordChange, Requests.getOptions(profileChangePassword)));

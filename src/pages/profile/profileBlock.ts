@@ -204,10 +204,22 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         items: newItemsProps,
       });
     });
-    bus.on(profileActions.changeMode, () => {
-      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        (["oldPassword", "newPassword"].includes(item.id) ? { ...item, disabled: "" } : item));
+    bus.on(profileActions.changePassDisable, () => {
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) => {
+        if(["oldPassword", "newPassword"].includes(item.id)) {
+          return {
+            ...item,
+            disabled: "disabled",
+            value: "",
+            errorMessage: "",
+            isInvalidClass: "",
+          };
+        }
+        if(item.id === "changePass") {
+          return ({ ...item, checked: "" });
+        }
+        return item;
+      });
       this._children.labledStateInputs.setProps({
         items: newItemsProps,
       });
