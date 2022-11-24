@@ -3,6 +3,6 @@ export const chatMessageTemplate = `
 <form class="chat-message__container" method="post" id="chat-message-form">
     <div class="chat-message__addon"></div>
     <textarea class="chat-message__input #isInvalidClass#" id="#message_name#" name="#message_name#">#value#</textarea>
-    <button class="chat-message__sendbtn">Отправить</button>
+    <button class="chat-message__sendbtn#submitWaiting#" id="sendbtn">Отправить</button>
 </form>
 `;

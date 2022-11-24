@@ -58,6 +58,11 @@ export class Handlers {
       Router.back();
       e.preventDefault();
     }
+    if(e.target.name === "changePass") {
+      bus.emit(e.target.checked
+        ? profileActions.changePassEnable
+        : profileActions.changePassDisable);
+    }
   }
 
   // @ts-ignore
@@ -78,6 +83,10 @@ export class Handlers {
         bus.emit(chatActions.removeUserFromChat);
         bus.emit(chatActions.promptClose);
         break;
+      case "prompt-panel__remove-chat":
+        bus.emit(chatActions.removeChat);
+        bus.emit(chatActions.promptClose);
+        break;
       case "prompt-panel__cancel-button":
         bus.emit(chatActions.promptClose);
         break;
@@ -91,7 +100,7 @@ export class Handlers {
         bus.emit(chatActions.removeUserFromChatPromptOpen);
         break;
       case "chat-header__remove-chat":
-        console.log("remove chat event");
+        bus.emit(chatActions.removeChatPromptOpen);
         break;
       default:
         const chatContainer = Handlers.getContainer(e.target, "chat-item__container");
@@ -151,7 +160,6 @@ export class Handlers {
         bus.emit(profileActions.changeMode);
         Requests.profileUpdate();
       }
-      if(e.target.id === "chat-message-form") bus.emit(chatActions.changeActive, formValidateData[0].value);
     }else{
       Object.entries(formValidateData).forEach(([key, value]) => {
         const event = value.errorMessage === "" ? inputActions.setValid : inputActions.setInvalid;
@@ -199,7 +207,7 @@ export class Handlers {
         if(block instanceof ProfileBlock) {
           const newItemsProps = block._children.labledStateInputs._props.items
             .map((item: KeyObject) =>
-            // eslint-disable-next-line implicit-arrow-linebreak
+              // eslint-disable-next-line implicit-arrow-linebreak
               (item.id === id ? {
                 ...item, value, errorMessage, isInvalidClass: "",
               } : item));

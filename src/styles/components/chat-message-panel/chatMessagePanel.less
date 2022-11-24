@@ -1,7 +1,7 @@
 .chat-message {
   &__error-text {
     display: block;
-    padding-right: 120px;
+    padding-right: 170px;
     height: 20px;
     color: @error_color;
     text-align: end;
@@ -35,7 +35,19 @@
     background-color: @send-button-background-color;
     border-radius: 5px;
     border: 3px solid @send-button-border-color;
-    min-width: 100px;
+    min-width: 150px;
+
+    &_waiting {
+      background: url("../../../../static/resources/wait.gif");
+      background-repeat: no-repeat;
+      background-size: 23px;
+      background-position-x: 2px;
+      background-position-y: 9px;
+      background-color: @send-button-background-color;
+      color: @send-button-disabled-color;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
 
     &:hover {
       background-color: @send-button-hover-color;

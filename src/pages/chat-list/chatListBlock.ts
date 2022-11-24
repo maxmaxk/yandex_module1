@@ -2,7 +2,7 @@ import { Block } from "../../common/block";
 import { state } from "../../common/state";
 import { chatListTemplate } from "./chatList.tmpl";
 import { pages } from "../pages";
-import { updateTestMessageList } from "./chatListContext";
+import { ChatListContent } from "./chatListContent";
 import { ChatItems } from "../../components/chat-items/chatItems";
 import { ChatFlow } from "../../components/chat-flow/chatFlow";
 import { Handlers } from "../../common/handlers";
@@ -11,6 +11,7 @@ import {
   InputParams,
   chatActions,
   inputActions,
+  submitActions,
   KeyObject,
 } from "../../common/common";
 import { Requests } from "../../common/requests";
@@ -34,6 +35,7 @@ type ChatListBlockType = {
   value: string,
   errorMessage: string,
   panelErrorMessage: string,
+  submitWaiting: string,
   chatItems: ChatItems,
   chatFlow: ChatFlow,
   events: object,
@@ -43,6 +45,8 @@ export class ChatListBlock extends Block<ChatListBlockType> {
   _wsocket: ChatWebSocket | null;
 
   _user: KeyObject;
+
+  chatListContent: ChatListContent;
 
   constructor() {
     const getActiveChat = () =>
@@ -65,6 +69,7 @@ export class ChatListBlock extends Block<ChatListBlockType> {
       promptPlaceholder: "",
       promptId: "",
       value: "",
+      submitWaiting: "",
       chatItems: new ChatItems("ul", {
         attr: { class: "chat-item-list" },
         chatItem: [],
@@ -89,7 +94,10 @@ export class ChatListBlock extends Block<ChatListBlockType> {
         chatHeaderImage: Requests.getAvatarResource(getActiveChat().avatar),
         chatHeaderTitle: getActiveChat()?.title,
       } as ChatListBlockType);
-
+      bus.emit(chatActions.highlightActive);
+      Requests.getChatToken(state.activeChatId.toString());
+    });
+    bus.on(chatActions.highlightActive, () => {
       const oldItems = [...this._children.chatItems._props.chatItem];
       this._children.chatItems.setProps({
         chatItem: oldItems.map((item: KeyObject) => (
@@ -98,7 +106,6 @@ export class ChatListBlock extends Block<ChatListBlockType> {
           }
         )),
       });
-      Requests.getChatToken(state.activeChatId.toString());
     });
     bus.on(
       inputActions.setInvalid,
@@ -112,14 +119,31 @@ export class ChatListBlock extends Block<ChatListBlockType> {
       inputActions.setValid,
       ({ value }: InputParams, relatedTarget: HTMLElement, errorMessage: string) => {
         this.setProps({ isInvalidClass: "", value, errorMessage } as ChatListBlockType);
-        // eslint-disable-next-line no-unused-expressions
-        relatedTarget;
+        Block.restoreFocus(relatedTarget);
       },
     );
-    bus.on(chatActions.messageSend, (message: string) => {
-      state.newMessageText = message;
-      this.setProps({ isInvalidClass: "", errorMessage: "" } as ChatListBlockType);
-      this._children.chatFlow.setProps({ message: updateTestMessageList() });
+    bus.on(chatActions.getMessage, async (data: KeyObject) => {
+      const myMessage = this._user.id === data.user_id;
+      if (myMessage) this.setProps({ isInvalidClass: "", errorMessage: "", value: "" } as ChatListBlockType);
+      this._children.chatFlow.setProps({
+        message: [...this._children.chatFlow._props.message,
+          this.chatListContent.getMessageItem(data),
+        ],
+      });
+      await Requests.getChats("");
+      bus.emit(chatActions.highlightActive);
+      bus.emit(chatActions.scrollDown);
+    });
+    bus.on(chatActions.getHistory, async (data: KeyObject[]) => {
+      const messageHistory = await this.chatListContent.updateMessageList(data);
+      this._children.chatFlow.setProps(
+        { message: messageHistory },
+      );
+      bus.emit(chatActions.scrollDown);
+    });
+    bus.on(chatActions.scrollDown, () => {
+      const chatBody = document.getElementsByClassName("chat-body__container")[0];
+      chatBody.scrollTo(0, chatBody.scrollHeight);
     });
     bus.on(chatActions.getChatList, (chatList: object[]) => {
       state.chatList = chatList;
@@ -131,12 +155,13 @@ export class ChatListBlock extends Block<ChatListBlockType> {
             image: Requests.getAvatarResource(item.avatar),
             isActiveClass: "",
             lastMessageOwn: item.last_message?.user.first_name ?? "",
-            lastMessage: item.last_message?.content ?? "",
-            time: item.last_message?.time ?? "",
+            lastMessage: ChatListContent.getShortMessage(item.last_message?.content),
+            time: ChatListContent.parseDateTime(item.last_message?.time),
             unreadCount: (item.unread_count > 0) ? item.unread_count : "",
           }
         )),
       });
+      bus.emit(chatActions.scrollDown);
     });
     bus.on(chatActions.addChatPromptOpen, () => {
       this.setProps({ promptVisible: "_visible", promptPlaceholder: "Название нового чата", promptId: "add-chat" } as ChatListBlockType);
@@ -147,6 +172,9 @@ export class ChatListBlock extends Block<ChatListBlockType> {
     bus.on(chatActions.removeUserFromChatPromptOpen, () => {
       this.setProps({ promptVisible: "_visible", promptPlaceholder: "Логин юзера для удаления", promptId: "remove-user-from-chat" } as ChatListBlockType);
     });
+    bus.on(chatActions.removeChatPromptOpen, () => {
+      this.setProps({ promptVisible: "_visible", promptPlaceholder: "Удалить чат?", promptId: "remove-chat" } as ChatListBlockType);
+    });
     bus.on(chatActions.addChat, () => {
       Requests.addChat(state.promptInput);
     });
@@ -156,6 +184,14 @@ export class ChatListBlock extends Block<ChatListBlockType> {
     bus.on(chatActions.removeUserFromChat, () => {
       Requests.removeUserFromChat(state.promptInput, state.activeChatId.toString());
     });
+    bus.on(chatActions.removeChat, async () => {
+      await Requests.removeChat(state.activeChatId.toString());
+      state.activeChatId = -1;
+      this.setProps({
+        isActiveChat: getIsActiveChat(),
+      } as ChatListBlockType);
+      Requests.getChats("");
+    });
     bus.on(chatActions.promptClose, () => {
       this.setProps({ promptVisible: "" } as ChatListBlockType);
     });
@@ -163,13 +199,26 @@ export class ChatListBlock extends Block<ChatListBlockType> {
       this.setProps({ panelErrorMessage: errorMsg } as ChatListBlockType);
     });
     bus.on(chatActions.openSocket, async (token: string) => {
-      if(this._wsocket) this._wsocket.close();
-      this._wsocket = new ChatWebSocket(this._user.id, state.activeChatId.toString(), token);
+      if(this._wsocket) {
+        this._wsocket.changeChat(state.activeChatId.toString(), token);
+      }else{
+        this._wsocket = new ChatWebSocket(this._user.id, state.activeChatId.toString(), token);
+      }
+    });
+    bus.on(submitActions.error, (errorMessage: string) => {
+      this.setProps({ errorMessage } as ChatListBlockType);
+    });
+    bus.on(submitActions.startWaiting, () => {
+      this.setProps({ submitWaiting: " chat-message__sendbtn_waiting" } as ChatListBlockType);
+    });
+    bus.on(submitActions.stopWaiting, () => {
+      this.setProps({ submitWaiting: "" } as ChatListBlockType);
     });
     Requests.getChats("");
     Requests.getUser().then((res: KeyObject) => {
       try{
         this._user = JSON.parse(res.response);
+        this.chatListContent = new ChatListContent(this._user);
       }catch(error) {
         this._user = {};
       }
@@ -194,6 +243,7 @@ export class ChatListBlock extends Block<ChatListBlockType> {
         { promptPlaceholder: this._props.promptPlaceholder },
         { promptId: this._props.promptId },
         { value: this._props.value },
+        { submitWaiting: this._props.submitWaiting },
         { errorMessage: this._props.errorMessage },
         { panelErrorMessage: this._props.panelErrorMessage },
       ],

@@ -51,6 +51,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: "",
             errorMessage: "",
+            disabled: "",
+            checked: "",
           },
           {
             title: "Фамилия",
@@ -60,6 +62,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: "",
             errorMessage: "",
+            disabled: "",
+            checked: "",
           },
           {
             title: "Логин",
@@ -69,6 +73,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: "",
             errorMessage: "",
+            disabled: "",
+            checked: "",
           },
           {
             title: "Имя в чате",
@@ -78,6 +84,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: "",
             errorMessage: "",
+            disabled: "",
+            checked: "",
           },
           {
             title: "Электронная почта",
@@ -87,6 +95,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: "",
             errorMessage: "",
+            disabled: "",
+            checked: "",
           },
           {
             title: "Телефон",
@@ -96,6 +106,19 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: "",
             errorMessage: "",
+            disabled: "",
+            checked: "",
+          },
+          {
+            title: "Сменить пароль",
+            value: "",
+            id: "changePass",
+            type: "checkbox",
+            isInvalidClass: "",
+            isHidden: getIsHidden(),
+            errorMessage: "",
+            disabled: "",
+            checked: "",
           },
           {
             title: "Старый пароль",
@@ -105,6 +128,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: getIsHidden(),
             errorMessage: "",
+            disabled: "disabled",
+            checked: "",
           },
           {
             title: "Новый пароль",
@@ -114,6 +139,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: getIsHidden(),
             errorMessage: "",
+            disabled: "disabled",
+            checked: "",
           },
           {
             title: "Аватар",
@@ -122,6 +149,8 @@ export class ProfileBlock extends Block<ProfileBlockType> {
             isInvalidClass: "",
             isHidden: getIsHidden(),
             errorMessage: "",
+            disabled: "",
+            checked: "",
           },
         ],
         events: {
@@ -141,7 +170,7 @@ export class ProfileBlock extends Block<ProfileBlockType> {
       this.setProps({ profileChangeDataTitle: getChangeDataTitle() } as ProfileBlockType);
       const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) =>
         // eslint-disable-next-line implicit-arrow-linebreak
-        (["oldPassword", "newPassword", "avatar"].includes(item.id) ? { ...item, isHidden: getIsHidden() } : item));
+        (["changePass", "oldPassword", "newPassword", "avatar"].includes(item.id) ? { ...item, isHidden: getIsHidden() } : item));
       this._children.labledStateInputs.setProps({
         dataChangeMode: getChangeMode(),
         isReadOnly: getIsReadOnly(),
@@ -160,6 +189,40 @@ export class ProfileBlock extends Block<ProfileBlockType> {
         // eslint-disable-next-line implicit-arrow-linebreak
         (updateItems[item.id] ? { ...item, value: updateItems[item.id] } : item));
       this._children.labledStateInputs.setProps({ items: newItemsProps });
+    });
+    bus.on(profileActions.changePassEnable, () => {
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) => {
+        if(["oldPassword", "newPassword"].includes(item.id)) {
+          return { ...item, disabled: "" };
+        }
+        if(item.id === "changePass") {
+          return ({ ...item, checked: "checked" });
+        }
+        return item;
+      });
+      this._children.labledStateInputs.setProps({
+        items: newItemsProps,
+      });
+    });
+    bus.on(profileActions.changePassDisable, () => {
+      const newItemsProps = this._children.labledStateInputs._props.items.map((item: KeyObject) => {
+        if(["oldPassword", "newPassword"].includes(item.id)) {
+          return {
+            ...item,
+            disabled: "disabled",
+            value: "",
+            errorMessage: "",
+            isInvalidClass: "",
+          };
+        }
+        if(item.id === "changePass") {
+          return ({ ...item, checked: "" });
+        }
+        return item;
+      });
+      this._children.labledStateInputs.setProps({
+        items: newItemsProps,
+      });
     });
     Requests.profileUpdate();
   }
