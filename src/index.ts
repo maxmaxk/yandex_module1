@@ -7,6 +7,7 @@ import { ProfileBlock } from "./pages/profile/profileBlock";
 import { ChatListBlock } from "./pages/chat-list/chatListBlock";
 import { Page404Block } from "./pages/page404/page404Block";
 import { Page500Block } from "./pages/page500/page500Block";
+import "./styles/styles.less";
 
 const router = new Router(".root");
 router

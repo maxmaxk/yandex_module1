@@ -20,6 +20,9 @@
     height: 100px;
     width: 100px;
     border-radius: 50%;
+    &[src="none"] {
+      content:url("../../../static/resources/no-avatar.jpg");
+    }
   }
 
   &__title {
@@ -107,7 +110,7 @@
   }
 
   .form__submit_waiting {
-    background: url("../../../../static/resources/wait.gif");
+    background: url("../../../static/resources/wait.gif");
     background-repeat: no-repeat;
     background-size: 23px;
     cursor: not-allowed;

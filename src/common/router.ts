@@ -21,7 +21,11 @@ export class Router {
     }
     if(!rootQuery) throw new Error("Root query absent");
     this.routes = [];
-    this.history = window.history;
+    try{
+      this.history = window.history;
+    }catch(e) {
+      console.log(e.message);
+    }
     this._currentRoute = null;
     this._rootQuery = rootQuery;
     Router.__instance = this;
