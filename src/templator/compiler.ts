@@ -36,7 +36,7 @@ const hasLoop = (template: string): Loop | null => {
 
 const createLoop = (template: string, loop: Loop): string => {
   const { startLoop, endLoop } = loop;
-  const loopTemplate = `<${template.slice(startLoop + 2, endLoop)} >`;
+  const loopTemplate = `<${template.slice(startLoop + 2, endLoop)}>`;
   const populateLoopStr = populateLoop(loopTemplate);
   return template.slice(0, startLoop) + populateLoopStr + template.slice(endLoop + 2);
 };

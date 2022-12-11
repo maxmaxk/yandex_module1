@@ -184,7 +184,13 @@ export class Block<Props extends KeyObject> {
 
   // @ts-ignore
   static _createDocumentElement(tagName) {
-    return document.createElement(tagName);
+    let element = null;
+    try{
+      element = document.createElement(tagName);
+    }catch(e) {
+      console.log(e.message);
+    }
+    return element;
   }
 
   compile(template: string, context: KeyObject) {

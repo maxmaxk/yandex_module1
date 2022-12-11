@@ -260,7 +260,7 @@ export class Requests {
 
   static getAvatarResource(resourceId: string | null): string {
     if(resourceId) return `${baseUrl}/resources${resourceId}`;
-    return "./resources/no-avatar.jpg";
+    return "none";
   }
 
   static async getChats(titleFilter: string) {
